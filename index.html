@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دفتر مشترک غیاث</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#20262b;
+    --ink-soft:#6b7480;
+    --paper:#faf8f4;
+    --panel:#ffffff;
+    --line:#e6e2d8;
+    --ali:#0f3d3e;
+    --ali-soft:#e4efee;
+    --maryam:#a6612e;
+    --maryam-soft:#faeee0;
+    --green:#2f7a4f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Vazirmatn',sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.6;
+    padding:20px 14px 50px;
+  }
+  .wrap{max-width:1100px;margin:0 auto;}
+  h1{font-size:1.35rem;font-weight:800;margin:0 0 4px;}
+  .sub{color:var(--ink-soft);font-size:.85rem;margin:0 0 18px;}
+
+  .stats{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+  .stat.ali{border-inline-start:5px solid var(--ali);}
+  .stat.maryam{border-inline-start:5px solid var(--maryam);}
+  .stat.profit{border-inline-start:5px solid var(--green);}
+  .stat .lbl{font-size:.78rem;color:var(--ink-soft);margin-bottom:6px;}
+  .stat .num{font-size:1.2rem;font-weight:800;font-variant-numeric:tabular-nums;}
+  .stat.profit .num{color:var(--green);}
+  .stat.ali .num{color:var(--ali);}
+  .stat.maryam .num{color:var(--maryam);}
+  .stat .foot{font-size:.72rem;color:var(--ink-soft);margin-top:4px;}
+
+  h2{font-size:1.02rem;font-weight:700;margin:26px 0 10px;}
+  .note{background:#fbf0dd;border:1px solid #ecd4a4;color:#6b4c15;padding:9px 13px;border-radius:8px;font-size:.8rem;margin-bottom:16px;}
+
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:.85rem;}
+  thead th{background:#f6f3ec;color:var(--ink-soft);font-weight:600;font-size:.73rem;padding:9px 6px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap;}
+  thead th:first-child{text-align:right;}
+  tbody td{padding:7px 6px;border-bottom:1px solid #f1eee4;vertical-align:middle;text-align:center;}
+  tbody td.name{text-align:right;}
+  tbody tr:last-child td{border-bottom:none;}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+  input.editable, select.mini{
+    width:100%;min-width:70px;border:1px solid #d9c98f;background:#fffdf7;
+    border-radius:6px;padding:6px 4px;font-family:inherit;font-size:.82rem;color:var(--ink);text-align:center;
+  }
+  input.editable:focus, select.mini:focus{outline:2px solid #c8862f;outline-offset:1px;}
+
+  .add-btn{
+    border:none;background:var(--ali);color:#fff;padding:6px 10px;border-radius:6px;
+    font-size:.76rem;cursor:pointer;font-family:inherit;white-space:nowrap;
+  }
+  .add-btn:hover{opacity:.88;}
+
+  .table-scroll{overflow-x:auto;}
+
+  .category-tabs{
+  .invoice-name-box{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:10px 12px;margin:12px 0;
+    display:flex;align-items:center;gap:10px;
+  }
+  .invoice-name-box label{font-size:.8rem;font-weight:700;white-space:nowrap;}
+  .invoice-name-input{
+    flex:1;border:1px solid #d9c98f;background:#fffdf7;border-radius:7px;
+    padding:7px 9px;font-family:inherit;font-size:.82rem;color:var(--ink);
+  }
+  .invoice-name-input:focus{outline:2px solid #c8862f;outline-offset:1px;}
+  @media(max-width:760px){
+    .invoice-name-box{align-items:stretch;flex-direction:column;}
+  }
+display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
+  .cat-tab{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 13px;border-radius:20px;font-family:inherit;font-size:.82rem;cursor:pointer;white-space:nowrap;}
+  .cat-tab:hover{border-color:var(--ali);color:var(--ali);}
+  .cat-tab.active{background:var(--ali);border-color:var(--ali);color:#fff;font-weight:700;}
+  .account-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0 18px;}
+  .account-title{font-weight:800;font-size:.95rem;margin-bottom:10px;}
+  .account-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .account-item{border:1px solid #eee9df;background:#fbfaf7;border-radius:8px;padding:8px 10px;display:flex;align-items:baseline;gap:7px;min-width:0;}
+  .account-item span{color:var(--ink-soft);font-size:.76rem;flex:1;}
+  .account-item strong{font-size:.95rem;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .account-item small{font-size:.68rem;color:var(--ink-soft);}
+  .settlement{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);font-size:.78rem;font-weight:700;color:var(--green);}
+  .invoice-columns{display:flex;flex-direction:column;gap:16px;margin-top:18px;}
+  .invoice-box{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .invoice-head{padding:11px 14px;font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;}
+  .invoice-box.ali .invoice-head{background:var(--ali-soft);color:var(--ali);}
+  .invoice-box.maryam .invoice-head{background:var(--maryam-soft);color:var(--maryam);}
+  .invoice-table-wrap{overflow-x:auto;overflow-y:hidden;}
+  .invoice-table{width:100%;min-width:760px;border-collapse:collapse;font-size:.73rem;background:var(--panel);table-layout:fixed;}
+  .invoice-table th{background:#f6f3ec;color:var(--ink-soft);font-weight:600;font-size:.68rem;padding:7px 4px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap;}
+  .invoice-table th:first-child{text-align:right;}
+  .invoice-table th:nth-child(5){white-space:nowrap;}
+  .invoice-table td{padding:6px 4px;border-bottom:1px solid #f1eee4;text-align:center;vertical-align:middle;white-space:nowrap;}
+  .invoice-table td.product-name{text-align:right;white-space:normal;min-width:0;max-width:none;overflow-wrap:anywhere;}
+  .invoice-table th:nth-child(5){font-weight:800;font-size:.78rem;}
+  .invoice-table td.profit-cell{font-weight:900;color:var(--green);white-space:nowrap;font-size:.9rem;background:#f3faf5;}
+  .invoice-table th:nth-child(1),.invoice-table td:nth-child(1){width:40%;}
+  .invoice-table th:nth-child(2),.invoice-table td:nth-child(2){width:9%;}
+  .invoice-table th:nth-child(3),.invoice-table td:nth-child(3){width:18%;}
+  .invoice-table th:nth-child(4),.invoice-table td:nth-child(4){width:20%;}
+  .invoice-table th:nth-child(5),.invoice-table td:nth-child(5){width:11%;}
+  .invoice-table th:nth-child(6),.invoice-table td:nth-child(6){width:2%;}
+
+
+
+
+  .invoice-table tfoot td{border-bottom:none;background:#fbfaf7;font-weight:700;}
+  .invoice-edit{width:100%;min-width:0;max-width:100%;border:1px solid #d9c98f;background:#fffdf7;border-radius:6px;padding:4px 3px;font-family:inherit;font-size:.72rem;color:var(--ink);text-align:center;}
+  .invoice-edit:focus{outline:2px solid #c8862f;outline-offset:1px;}
+
+  .invoice-owner{
+    width:100%;min-width:108px;border:1px solid #d9c98f;background:#fffdf7;
+    border-radius:6px;padding:4px 3px;font-family:inherit;font-size:.72rem;
+    color:var(--ink);text-align:center;
+  }
+  .invoice-owner:focus{outline:2px solid #c8862f;outline-offset:1px;}
+
+  .remove-btn{border:none;background:none;color:#a6423a;cursor:pointer;font-size:1rem;padding:0 4px;}
+
+
+  .columns{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;}
+  .col-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .col-box .head{padding:11px 14px;font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;}
+  .col-box.ali .head{background:var(--ali-soft);color:var(--ali);}
+  .col-box.maryam .head{background:var(--maryam-soft);color:var(--maryam);}
+  .col-box .body{padding:6px 0;}
+  .item-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #f1eee4;font-size:.83rem;}
+  .item-row:last-child{border-bottom:none;}
+  .item-row .iname{flex:1;}
+  .item-row .imeta{color:var(--ink-soft);font-size:.75rem;}
+  .item-row .iprofit{font-weight:700;color:var(--green);white-space:nowrap;}
+  .item-row .rm{border:none;background:none;color:#a6423a;cursor:pointer;font-size:1rem;padding:0 4px;}
+  .empty-msg{padding:16px 14px;color:var(--ink-soft);font-size:.82rem;}
+  .col-box .subtotal{padding:10px 14px;border-top:1px solid var(--line);background:#fbfaf7;font-size:.85rem;display:flex;justify-content:space-between;font-weight:700;}
+
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;font-family:inherit;}
+  .btn:hover{border-color:var(--ali);color:var(--ali);}
+  .toolbar{display:flex;justify-content:flex-end;margin:14px 0;}
+
+  @media(max-width:760px){
+    .stats{grid-template-columns:1fr;}
+    .columns{grid-template-columns:1fr;}
+    .invoice-columns{grid-template-columns:1fr;}
+    .invoice-table{font-size:.72rem;}
+    .account-grid{grid-template-columns:1fr;}
+    table{font-size:.85rem;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>دفتر مشترک محصولات غیاث</h1>
+  <p class="sub">سید علی محمد مدرسی و مریم مدرسی — لیست قیمت مرداد ۱۴۰۵</p>
+
+  <div class="stats">
+    <div class="stat ali">
+      <div class="lbl">جمع سرمایه علی</div>
+      <div class="num" id="capAli">۰</div>
+      <div class="foot">تومان</div>
+    </div>
+    <div class="stat maryam">
+      <div class="lbl">جمع سرمایه مریم</div>
+      <div class="num" id="capMaryam">۰</div>
+      <div class="foot">تومان</div>
+    </div>
+    <div class="stat profit">
+      <div class="lbl">سود کل شراکت</div>
+      <div class="num" id="totalProfit">۰</div>
+      <div class="foot">سهم هر نفر: <span id="halfProfit">۰</span> تومان</div>
+    </div>
+  </div>
+
+  <div class="account-box">
+    <div class="account-title">خلاصه سرمایه و سود شراکتی</div>
+    <div class="account-grid">
+      <div class="account-item"><span>سرمایه علی</span><strong id="accountAliCapital">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span>سود فروش‌های علی</span><strong id="aliOwnProfit">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span>سهم نهایی علی</span><strong id="aliShare">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span>سرمایه مریم</span><strong id="accountMaryamCapital">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span>سود فروش‌های مریم</span><strong id="maryamOwnProfit">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span>سهم نهایی مریم</span><strong id="maryamShare">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span>جمع سرمایه</span><strong id="totalCapital">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span>جمع سود کل</span><strong id="accountTotalProfit">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span>سود هر نفر (۵۰٪)</span><strong id="accountHalfProfit">۰</strong><small>تومان</small></div>
+    </div>
+    <div id="profitSettlement" class="settlement"></div>
+  </div>
+
+  <div class="invoice-name-box">
+    <label for="invoiceName">نام فاکتور / مشتری</label>
+    <input id="invoiceName" class="invoice-name-input" type="text" placeholder="مثلاً: فاکتور آقای احمدی">
+  </div>
+
+  <h2>۱. لیست کالاها و قیمت‌ها</h2>
+  <div class="note">قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون سید علی محمد مدرسی یا مریم مدرسی اضافه‌ش کنید.</div>
+
+  <div id="categoryTabs" class="category-tabs"></div>
+  <div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>نام کالا</th><th>قیمت خرید</th><th>قیمت فروش</th>
+        <th>تعداد</th><th>تامین‌کننده</th><th>مال کی</th><th>افزودن</th>
+      </tr>
+    </thead>
+    <tbody id="catalogBody"></tbody>
+  </table>
+  </div>
+
+  <h2>۲. کالاهای هرکدام</h2>
+  <div class="invoice-columns">
+    <div class="invoice-box ali">
+      <div class="invoice-head"><span>سید علی محمد مدرسی</span><span id="aliCount">۰ قلم</span></div>
+      <div class="invoice-table-wrap">
+        <table class="invoice-table">
+          <thead><tr>
+            <th>کالا</th><th>تعداد</th><th>قیمت فروش</th><th>مال کی؟</th><th>سود</th><th></th>
+          </tr></thead>
+          <tbody id="aliList"></tbody>
+          <tfoot><tr>
+            <td colspan="2">جمع</td><td id="aliSubtotal">۰ تومان</td><td>—</td><td id="aliInvoiceProfit">۰ تومان</td><td></td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="invoice-box maryam">
+      <div class="invoice-head"><span>مریم مدرسی</span><span id="maryamCount">۰ قلم</span></div>
+      <div class="invoice-table-wrap">
+        <table class="invoice-table">
+          <thead><tr>
+            <th>کالا</th><th>تعداد</th><th>قیمت فروش</th><th>مال کی؟</th><th>سود</th><th></th>
+          </tr></thead>
+          <tbody id="maryamList"></tbody>
+          <tfoot><tr>
+            <td colspan="2">جمع</td><td id="maryamSubtotal">۰ تومان</td><td>—</td><td id="maryamInvoiceProfit">۰ تومان</td><td></td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar" style="gap:8px;flex-wrap:wrap;">
+    <button class="btn" id="saveInvoice">💾 ذخیره فاکتور</button>
+    <button class="btn" id="loadInvoice">📂 لود فاکتور</button>
+    <button class="btn" id="exportMaryam">خروجی مریم</button>
+    <button class="btn" id="exportAli">خروجی علی</button>
+    <button class="btn" id="resetAll">پاک کردن همه چیز</button>
+    <input id="invoiceFile" type="file" accept=".json,application/json" style="display:none">
+  </div>
+</div>
+
+<script>
+// [code, name, purchasePrice, defaultSalePrice(or null), note]
+const PRODUCTS = [
+ ["701","پاک کننده چندمنظوره خانگی - 500 سی‌سی",139700,189700,""],
+ ["702","پاک کننده گاز - 500 سی‌سی",134000,184000,""],
+ ["703","پاک کننده سینک و شیرآلات - 500 سی‌سی",133000,183000,""],
+ ["704","پاک کننده مبل، فرش و پارچه - 500 سی‌سی",133500,183500,""],
+ ["705","پاک کننده ال‌ای‌دی و صفحه نمایش - 500 سی‌سی",130000,180000,""],
+ ["706","پاک کننده کاغذ دیواری - 500 سی‌سی",134000,184000,""],
+ ["707","پاک کننده پارکت و سرامیک - 500 سی‌سی",133000,183000,""],
+
+ ["501","واکس مات کننده الستیک (TIRE MATTE) - 500 سی‌سی",129500,179500,""],
+ ["502","واکس براق کننده الستیک (TIRE SHINE) - 500 سی‌سی",149500,199500,""],
+ ["503","واکس داشبورد سیلیکونی - 500 سی‌سی",161500,211500,""],
+ ["504","واکس داشبورد غیر سیلیکونی - 500 سی‌سی",144500,194500,""],
+ ["505","واکس سه‌کاره الاستیک، داشبورد، سپر - 500 سی‌سی",158000,208000,""],
+ ["506","صفر شوی - 500 سی‌سی",144500,194500,""],
+ ["507","موتور شوی - 500 سی‌سی",136500,186500,""],
+ ["508","رینگ شوی - 500 سی‌سی",119000,169000,""],
+ ["509","پاک کننده چندمنظوره خودرویی - 500 سی‌سی",159500,209500,""],
+ ["510","شیشه شوی - 500 سی‌سی",114000,164000,""],
+ ["511","شامپو بدنه - 500 سی‌سی",170000,220000,""],
+ ["512","براق کننده بدنه - 500 سی‌سی",132000,182000,""],
+ ["513","براق کننده چراغ - 500 سی‌سی",132000,182000,""],
+ ["514","بلک شاین - 500 سی‌سی",190000,240000,""],
+ ["515","بلک مجیک - 500 سی‌سی",169000,219000,""],
+ ["201","واکس مات کننده الستیک - 20 لیتر",1156800,1206800,""],
+ ["202","واکس براق کننده الستیک - 20 لیتر",1950000,2000000,""],
+ ["203","واکس داشبورد سیلیکونی - 20 لیتر",1930000,1980000,""],
+ ["204","واکس داشبورد غیر سیلیکونی - 20 لیتر",1530000,1580000,""],
+ ["205","واکس سه‌کاره - 20 لیتر",1890000,1940000,""],
+ ["206","صفر شوی - 20 لیتر",1316500,1366500,""],
+ ["207","موتور شوی - 20 لیتر",1296000,1346000,""],
+ ["208","رینگ شوی - 20 لیتر",1065600,1115600,""],
+ ["209","پاک کننده چندمنظوره خودرویی - 20 لیتر",1899500,1949500,""],
+ ["210","شیشه شوی - 20 لیتر",800000,850000,""],
+ ["211","شامپو بدنه - 20 لیتر",1800000,1850000,""],
+ ["212","براق کننده بدنه - 20 لیتر",1096800,1146800,""],
+ ["213","براق کننده چراغ - 20 لیتر",1140000,1190000,""],
+ ["8008","کنستانتره موتورشوی - 20 لیتر",1032000,1082000,""],
+ ["214","بلک شاین - 20 لیتر",3000000,3050000,""],
+ ["215","بلک مجیک - 20 لیتر",2400000,2450000,""],
+ ["1","پاک کننده چندمنظوره خانگی - 20 لیتر",921000,971000,""],
+ ["2","پاک کننده گاز - 20 لیتر",831000,881000,""],
+ ["3","پاک کننده سینک و شیرآلات - 20 لیتر",813000,863000,""],
+ ["4","پاک کننده مبل، فرش و پارچه - 20 لیتر",822000,872000,""],
+ ["5","پاک کننده ال‌ای‌دی و صفحه نمایش - 20 لیتر",768000,818000,""],
+ ["6","پاک کننده کاغذ دیواری - 20 لیتر",830400,880400,""],
+ ["7","پاک کننده پارکت و سرامیک - 20 لیتر",813000,863000,""],
+ ["1","پاک کننده سطوح سیمانی و بتنی صنعتی - 20 لیتر",1056000,1106000,""],
+ ["2","پاک کننده چندمنظوره صنعتی - 20 لیتر",1214400,1264400,""],
+ ["3","شامپو نانو صنعتی - 20 لیتر",1308000,1358000,""],
+ ["4","پاک کننده و روان کننده دستگاه صنعتی - 20 لیتر",1142400,1192400,""],
+ ["5","پاک کننده روغن و چربی‌های صنعتی - 20 لیتر",1156800,1206800,""],
+ ["6","پاک کننده سطوح سنگی و سرامیکی صنعتی - 20 لیتر",1099200,1149200,""],
+ ["-","اسپری خوشبوکننده - رایحه باس من (MAN BOSS) - 125 سی‌سی",144000,194000,""],
+ ["-","اسپری خوشبوکننده - رایحه مادام بیوتی - 125 سی‌سی",144000,194000,""],
+ ["-","اسپری خوشبوکننده - رایحه الوندر - 125 سی‌سی",144000,194000,""],
+ ["-","اسپری خوشبوکننده - رایحه کول فرش - 125 سی‌سی",144000,194000,""],
+ ["-","دستمال شیشه - 30×30",87500,140000,""],
+ ["-","دستمال سرامیک بدنه - 30×30",88500,140000,""],
+ ["-","دستمال سطوح و شیشه چهارخانه طوسی - 30×30",86500,140000,"قیمت خرید در لیست اصلی درج نشده"],
+ ["-","دستمال سطوح و شیشه آبی - 30×30",85500,140000,""],
+ ["-","دستمال سطوح و شیشه سبز - 30×30",84000,140000,""],
+ ["-","ادکلن زنانه همراز - 50 سی‌سی",369500,419500,""],
+ ["-","ادکلن مردانه کایرا - 50 سی‌سی",369500,419500,""],
+ ["-","عطر با رایحه دانهیل (DUNHILL) - 30 سی‌سی",186000,236000,""],
+ ["-","عطر با رایحه ایفوریا (EUPHORIA) - 30 سی‌سی",186000,236000,""],
+ ["-","عطر با رایحه باس من (BOSS MAN) - 30 سی‌سی",186000,236000,""],
+ ["-","عطر با رایحه مادام بیوتی (MADAM BEAUTY) - 30 سی‌سی",186000,236000,""],
+ ["-","عطر با رایحه لوندر (LAVENDER) - 30 سی‌سی",186000,236000,""],
+ ["-","عطر با رایحه کول فرش (COOL FRESH) - 30 سی‌سی",186000,236000,""],
+ ["-","نانو چرم کیف و کفش - بدون جعبه",155000,205000,"⚠ اعداد این ردیف در فایل اصلی نامرتب چاپ شده بود؛ لطفاً بررسی کنید"],
+ ["-","نانو چرم کیف و کفش - با جعبه",177000,227000,"⚠ اعداد این ردیف در فایل اصلی نامرتب چاپ شده بود؛ لطفاً بررسی کنید"],
+];
+
+const STORE_KEY = "ghiyas_ledger_addflow_v1";
+
+function loadState(){
+  try{ const raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {salePrices:{}, items:[]}; }
+  catch(e){ return {salePrices:{}, items:[]}; }
+}
+function saveState(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+let state = loadState();
+if(!state.salePrices) state.salePrices = {};
+if(!state.items) state.items = [];
+let nextId = state.items.reduce((m,it)=>Math.max(m,it.id||0),0)+1;
+
+function fmt(n){
+  if(!isFinite(n) || n===null || n===undefined) n = 0;
+  return Math.round(n).toLocaleString('fa-IR');
+}
+
+function getSalePrice(i){
+  if(state.salePrices[i] !== undefined) return state.salePrices[i];
+  return PRODUCTS[i][3];
+}
+
+const CATEGORY_ORDER = ["همه","محصولات خانگی","محصولات خودرو","محصولات صنعتی","خوشبوکننده","دستمال","عطر و ادکلن","چرم و کیف و کفش","سایر"];
+
+function getCategory(name){
+  if (name.includes("دستمال")) return "دستمال";
+  if (name.includes("اسپری خوشبوکننده")) return "خوشبوکننده";
+  if (name.includes("ادکلن") || name.includes("عطر با رایحه")) return "عطر و ادکلن";
+  if (name.includes("نانو چرم کیف و کفش")) return "چرم و کیف و کفش";
+  if (name.includes("صنعتی") || name.includes("کنستانتره موتورشوی")) return "محصولات صنعتی";
+  if (name.includes("پاک کننده چندمنظوره خانگی") || name.includes("پاک کننده گاز") ||
+      name.includes("پاک کننده سینک") || name.includes("پاک کننده مبل") ||
+      name.includes("پاک کننده ال‌ای‌دی") || name.includes("پاک کننده کاغذ دیواری") ||
+      name.includes("پاک کننده پارکت")) return "محصولات خانگی";
+  if (name.includes("واکس") || name.includes("صفر شوی") || name.includes("موتور شوی") ||
+      name.includes("رینگ شوی") || name.includes("پاک کننده چندمنظوره خودرویی") ||
+      name.includes("شیشه شوی") || name.includes("شامپو بدنه") ||
+      name.includes("براق کننده بدنه") || name.includes("براق کننده چراغ") ||
+      name.includes("بلک شاین") || name.includes("بلک مجیک")) return "محصولات خودرو";
+  return "سایر";
+}
+
+let activeCategory = "همه";
+
+function renderCategoryTabs(){
+  const box = document.getElementById("categoryTabs");
+  box.innerHTML = CATEGORY_ORDER.map(cat =>
+    `<button type="button" class="cat-tab ${cat===activeCategory?'active':''}" data-cat="${cat}">${cat}</button>`
+  ).join("");
+  box.querySelectorAll(".cat-tab").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      activeCategory = btn.dataset.cat;
+      renderCategoryTabs();
+      buildCatalog();
+    });
+  });
+}
+
+function buildCatalog(){
+  const tbody = document.getElementById('catalogBody');
+  tbody.innerHTML = "";
+
+  PRODUCTS.forEach((p,i)=>{
+    if(activeCategory !== "همه" && getCategory(p[1]) !== activeCategory) return;
+
+    const tr = document.createElement('tr');
+    const purchaseTxt = p[2]!==null ? fmt(p[2]) : "—";
+    const sp = getSalePrice(i);
+    const flag = p[4] ? `<div class="imeta" style="color:#a6423a">${p[4]}</div>` : "";
+
+    tr.innerHTML = `
+      <td class="name">${p[1]}${flag}</td>
+      <td class="num">${purchaseTxt}</td>
+      <td><input class="editable" type="number" min="0" data-role="sale" value="${sp!==null?sp:''}" placeholder="—"></td>
+      <td><input class="editable" type="number" min="0" data-role="qty" placeholder="0" style="max-width:60px"></td>
+      <td><input class="editable" type="text" data-role="supplier" placeholder="تامین‌کننده"></td>
+      <td>
+        <select class="mini" data-role="owner">
+          <option value="ali">سید علی محمد مدرسی</option>
+          <option value="maryam">مریم مدرسی</option>
+        </select>
+      </td>
+      <td><button class="add-btn" data-role="add">افزودن</button></td>
+    `;
+    tbody.appendChild(tr);
+
+    const saleInput = tr.querySelector('[data-role="sale"]');
+    saleInput.addEventListener('input', ()=>{
+      state.salePrices[i] = saleInput.value === "" ? null : parseFloat(saleInput.value);
+      saveState();
+    });
+
+    tr.querySelector('[data-role="add"]').addEventListener('click', ()=>{
+      const qty = parseFloat(tr.querySelector('[data-role="qty"]').value) || 0;
+      if(qty <= 0){
+        tr.querySelector('[data-role="qty"]').focus();
+        return;
+      }
+
+      const owner = tr.querySelector('[data-role="owner"]').value;
+      const supplier = (tr.querySelector('[data-role="supplier"]').value || "").trim();
+      const salePriceNow = saleInput.value === "" ? 0 : parseFloat(saleInput.value);
+
+      state.items.push({
+        id: nextId++,
+        productIndex: i,
+        owner: owner,
+        qty: qty,
+        salePrice: salePriceNow,
+        purchasePrice: p[2] || 0,
+        supplier: supplier
+      });
+
+      saveState();
+      tr.querySelector('[data-role="qty"]').value = "";
+      renderColumns();
+    });
+  });
+}
+
+function renderColumns(){
+  const aliList = document.getElementById('aliList');
+  const maryamList = document.getElementById('maryamList');
+  aliList.innerHTML = "";
+  maryamList.innerHTML = "";
+
+  let aliCount=0, maryamCount=0;
+  let aliProfit=0, maryamProfit=0;
+  let aliCapital=0, maryamCapital=0;
+
+  state.items.forEach(item=>{
+    const p = PRODUCTS[item.productIndex];
+    const qty = Number(item.qty)||0;
+    const sale = Number(item.salePrice)||0;
+    const purchase = Number(item.purchasePrice)||0;
+    const revenue = sale * qty;
+    const cost = purchase * qty;
+    const profit = revenue - cost;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="product-name">${p[1]}</td>
+      <td>${fmt(qty)}</td>
+      <td><input class="invoice-edit" type="number" min="0" value="${sale}" data-edit="sale"></td>
+      <td>
+        <select class="invoice-owner" data-edit="owner">
+          <option value="ali" ${item.owner==='ali'?'selected':''}>سید علی محمد مدرسی</option>
+          <option value="maryam" ${item.owner==='maryam'?'selected':''}>مریم مدرسی</option>
+        </select>
+      </td>
+      <td class="profit-cell">${fmt(profit)}</td>
+      <td><button class="remove-btn" title="حذف">×</button></td>
+    `;
+
+    const saleInput = tr.querySelector('[data-edit="sale"]');
+    const ownerInput = tr.querySelector('[data-edit="owner"]');
+
+    saleInput.addEventListener('change', ()=>{
+      item.salePrice = Math.max(0, Number(saleInput.value)||0);
+      saveState();
+      renderColumns();
+    });
+
+    ownerInput.addEventListener('change', ()=>{
+      item.owner = ownerInput.value;
+      saveState();
+      renderColumns();
+    });
+
+    tr.querySelector('.remove-btn').addEventListener('click', ()=>{
+      state.items = state.items.filter(x=>x.id !== item.id);
+      saveState();
+      renderColumns();
+    });
+
+    if(item.owner === 'ali'){
+      aliList.appendChild(tr);
+      aliCount += qty;
+      aliCapital += cost;
+      aliProfit += profit;
+    } else {
+      maryamList.appendChild(tr);
+      maryamCount += qty;
+      maryamCapital += cost;
+      maryamProfit += profit;
+    }
+  });
+
+  if(aliCount===0) aliList.innerHTML = `<tr><td colspan="6" class="empty-msg">هنوز کالایی اضافه نشده</td></tr>`;
+  if(maryamCount===0) maryamList.innerHTML = `<tr><td colspan="6" class="empty-msg">هنوز کالایی اضافه نشده</td></tr>`;
+
+  const totalCapital = aliCapital + maryamCapital;
+  const totalProfit = aliProfit + maryamProfit;
+  const eachShare = totalProfit / 2;
+
+  document.getElementById('aliCount').textContent = fmt(aliCount) + " قلم";
+  document.getElementById('maryamCount').textContent = fmt(maryamCount) + " قلم";
+  document.getElementById('aliSubtotal').textContent = fmt(aliCapital) + " تومان";
+  document.getElementById('maryamSubtotal').textContent = fmt(maryamCapital) + " تومان";
+  document.getElementById('aliInvoiceProfit').textContent = fmt(aliProfit) + " تومان";
+  document.getElementById('maryamInvoiceProfit').textContent = fmt(maryamProfit) + " تومان";
+
+  document.getElementById('capAli').textContent = fmt(aliCapital);
+  document.getElementById('capMaryam').textContent = fmt(maryamCapital);
+  document.getElementById('totalProfit').textContent = fmt(totalProfit);
+  document.getElementById('halfProfit').textContent = fmt(eachShare);
+
+  document.getElementById('accountAliCapital').textContent = fmt(aliCapital);
+  document.getElementById('aliOwnProfit').textContent = fmt(aliProfit);
+  document.getElementById('aliShare').textContent = fmt(eachShare);
+  document.getElementById('accountMaryamCapital').textContent = fmt(maryamCapital);
+  document.getElementById('maryamOwnProfit').textContent = fmt(maryamProfit);
+  document.getElementById('maryamShare').textContent = fmt(eachShare);
+  document.getElementById('totalCapital').textContent = fmt(totalCapital);
+  document.getElementById('accountTotalProfit').textContent = fmt(totalProfit);
+  document.getElementById('accountHalfProfit').textContent = fmt(eachShare);
+
+  const settlement = eachShare - aliProfit;
+  const box = document.getElementById('profitSettlement');
+  if(box){
+    box.textContent = settlement > 0
+      ? `برای مساوی شدن سهم سود، مریم ${fmt(settlement)} تومان به علی می‌دهد`
+      : settlement < 0
+        ? `برای مساوی شدن سهم سود، علی ${fmt(Math.abs(settlement))} تومان به مریم می‌دهد`
+        : "سود هر دو نفر برابر است و تسویه‌ای لازم نیست";
+  }
+}const invoiceNameInput = document.getElementById("invoiceName");
+if(invoiceNameInput){
+  invoiceNameInput.value = state.invoiceName || "";
+  invoiceNameInput.addEventListener("input", ()=>{
+    state.invoiceName = invoiceNameInput.value;
+    saveState();
+  });
+}
+
+renderCategoryTabs();
+buildCatalog();
+renderColumns();
+
+function exportTableImage(ownerFilter){
+  const items = Array.isArray(state.items) ? state.items : [];
+  const selectedItems = items.filter(x => x.owner === ownerFilter);
+
+  if(selectedItems.length === 0){
+    alert(ownerFilter === "ali" ? "برای علی هنوز کالایی ثبت نشده است." : "برای مریم هنوز کالایی ثبت نشده است.");
+    return;
+  }
+
+  const faNum = n => fmt(Number(n)||0);
+  const ownerName = ownerFilter === "ali" ? "سید علی محمد مدرسی" : "مریم مدرسی";
+
+  let capital=0, ownProfit=0;
+  selectedItems.forEach(item=>{
+    const q=Number(item.qty)||0;
+    const buy=Number(item.purchasePrice)||0;
+    const sell=Number(item.salePrice)||0;
+    capital += q*buy;
+    ownProfit += q*(sell-buy);
+  });
+
+  const totalProfit = items.reduce((sum,item)=>{
+    const q=Number(item.qty)||0;
+    const buy=Number(item.purchasePrice)||0;
+    const sell=Number(item.salePrice)||0;
+    return sum + q*(sell-buy);
+  },0);
+
+  // سود نهایی هر نفر = نصف سود کل
+  const finalShare = totalProfit / 2;
+  // مبلغ واریزی نهایی = سرمایه همان نفر + سود نهایی همان نفر
+  const finalPayable = capital + finalShare;
+
+  const SCALE=4;
+  const W=1450, margin=40, rowH=86, headH=86;
+  const titleH=155, summaryH=430, footerH=90;
+
+  const logicalH = titleH + summaryH + headH + Math.max(1,selectedItems.length)*rowH + footerH + 60;
+  const canvas=document.createElement("canvas");
+  canvas.width=W*SCALE;
+  canvas.height=logicalH*SCALE;
+  const ctx=canvas.getContext("2d");
+  ctx.scale(SCALE,SCALE);
+  ctx.fillStyle="#faf8f4";
+  ctx.fillRect(0,0,W,logicalH);
+
+  function font(size,weight="600"){ ctx.font=`${weight} ${size}px Tahoma, Arial, sans-serif`; }
+  function right(txt,x,y,size,weight="600",fill="#20262b"){
+    ctx.save(); ctx.direction="rtl"; ctx.textAlign="right"; ctx.textBaseline="middle";
+    font(size,weight); ctx.fillStyle=fill; ctx.fillText(String(txt),x,y); ctx.restore();
+  }
+  function center(txt,x,y,size,weight="600",fill="#20262b"){
+    ctx.save(); ctx.direction="rtl"; ctx.textAlign="center"; ctx.textBaseline="middle";
+    font(size,weight); ctx.fillStyle=fill; ctx.fillText(String(txt),x,y); ctx.restore();
+  }
+  function rounded(x,y,w,h,r,fill,stroke){
+    ctx.beginPath(); ctx.roundRect(x,y,w,h,r);
+    if(fill){ctx.fillStyle=fill;ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}
+  }
+  function wrapRight(txt,x,y,maxWidth,size,weight="600",fill="#20262b"){
+    ctx.save(); ctx.direction="rtl"; ctx.textAlign="right"; ctx.textBaseline="top";
+    font(size,weight); ctx.fillStyle=fill;
+    const words=String(txt).split(/\s+/);
+    let line="", yy=y, gap=Math.round(size*1.35);
+    for(const word of words){
+      const test=line?line+" "+word:word;
+      if(ctx.measureText(test).width>maxWidth && line){
+        ctx.fillText(line,x,yy); yy+=gap; line=word;
+      } else line=test;
+    }
+    if(line) ctx.fillText(line,x,yy);
+    ctx.restore();
+  }
+
+  let y=margin;
+
+  right("دفتر مشترک محصولات غیاث",W-margin,y+30,40,"900");
+  right("گزارش اختصاصی "+ownerName,W-margin,y+76,25,"800");
+  const invoiceName=(document.getElementById("invoiceName")?.value||"").trim();
+  if(invoiceName) right("نام فاکتور: "+invoiceName,W-margin,y+118,25,"900");
+  y+=titleH;
+
+  // مهم‌ترین بخش خروجی: در ابتدای فاکتور
+  rounded(margin,y,W-2*margin,250,18,"#ffffff","#c9c2b7");
+  right("مبلغ واریزی نهایی",W-margin-28,y+38,30,"900","#20262b");
+  right("سرمایه: "+faNum(capital)+" تومان",W-margin-28,y+88,24,"700","#555d66");
+  right("سود نهایی: "+faNum(finalShare)+" تومان",W-margin-28,y+130,24,"700","#555d66");
+  right("واریز نهایی: "+faNum(finalPayable)+" تومان",W-margin-28,y+194,38,"900","#20262b");
+  y+=280;
+
+  // جدول کالاهای همان شخص
+  const colW=[560,110,190,210,210];
+  const colX=[]; let cursor=W-margin;
+  for(const w of colW){cursor-=w; colX.push(cursor);}
+  const headers=["کالا","تعداد","قیمت فروش","سرمایه","سود"];
+
+  right(ownerName,W-margin,y+30,28,"900");
+  y+=58;
+  rounded(margin,y,W-2*margin,headH,9,"#f3f0e8","#ddd8cc");
+  headers.forEach((h,i)=>right(h,colX[i]+colW[i]-10,y+headH/2,18,"900","#515962"));
+  y+=headH;
+
+  selectedItems.forEach((item,idx)=>{
+    const p=PRODUCTS[item.productIndex];
+    const q=Number(item.qty)||0, buy=Number(item.purchasePrice)||0, sell=Number(item.salePrice)||0;
+    const itemCapital=q*buy, itemProfit=q*(sell-buy);
+    ctx.fillStyle=idx%2===0?"#ffffff":"#fcfbf8";
+    ctx.fillRect(margin,y,W-2*margin,rowH);
+    wrapRight(p[1],colX[0]+colW[0]-10,y+13,colW[0]-18,18,"700");
+    center(faNum(q),colX[1]+colW[1]/2,y+rowH/2,21,"900");
+    right(faNum(sell),colX[2]+colW[2]-10,y+rowH/2,21,"900");
+    right(faNum(itemCapital),colX[3]+colW[3]-10,y+rowH/2,21,"900");
+    right(faNum(itemProfit),colX[4]+colW[4]-10,y+rowH/2,25,"900","#20262b");
+    ctx.strokeStyle="#ebe7de"; ctx.lineWidth=1;
+    ctx.strokeRect(margin,y,W-2*margin,rowH);
+    y+=rowH;
+  });
+
+  ctx.fillStyle="#f8f5ee"; ctx.fillRect(margin,y,W-2*margin,rowH);
+  right("جمع",W-margin-14,y+rowH/2,21,"900");
+  right(faNum(capital)+" تومان",colX[3]+colW[3]-10,y+rowH/2,20,"900");
+  right(faNum(ownProfit)+" تومان",colX[4]+colW[4]-10,y+rowH/2,23,"900");
+  y+=rowH+28;
+
+  // یک یادآوری کوچک در پایین
+  right("واریز نهایی = سرمایه + سود نهایی",W-margin,y,18,"700","#555d66");
+
+  canvas.toBlob(blob=>{
+    if(!blob){alert("ساخت خروجی عکس ناموفق بود.");return;}
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=ownerFilter==="ali"
+      ? "فاکتور_علی_با_مبلغ_واریزی_نهایی.png"
+      : "فاکتور_مریم_با_مبلغ_واریزی_نهایی.png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+  },"image/png",1);
+}
+
+
+document.getElementById('exportAli').addEventListener('click', ()=>exportTableImage("ali"));
+document.getElementById('exportMaryam').addEventListener('click', ()=>exportTableImage("maryam"));
+
+
+// ذخیره و لود فاکتور به صورت فایل JSON
+function saveInvoiceToFile(){
+  const invoiceName = (document.getElementById("invoiceName")?.value || "").trim();
+  const payload = {
+    app: "دفتر مشترک محصولات غیاث",
+    version: 1,
+    savedAt: new Date().toISOString(),
+    invoiceName: invoiceName,
+    salePrices: state.salePrices || {},
+    items: Array.isArray(state.items) ? state.items : []
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const safeName = invoiceName
+    ? invoiceName.replace(/[\\/:*?"<>|]/g,"_").slice(0,80)
+    : "بدون_نام";
+  a.href = url;
+  a.download = `فاکتور_${safeName}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+
+function loadInvoiceFromFile(file){
+  if(!file) return;
+  const reader = new FileReader();
+
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+
+      if(!data || !Array.isArray(data.items) || typeof data.salePrices !== "object"){
+        throw new Error("invalid");
+      }
+
+      const validItems = data.items.filter(item =>
+        item &&
+        Number.isInteger(item.productIndex) &&
+        item.productIndex >= 0 &&
+        item.productIndex < PRODUCTS.length
+      ).map(item => ({
+        id: Number(item.id) || 0,
+        productIndex: item.productIndex,
+        owner: item.owner === "maryam" ? "maryam" : "ali",
+        qty: Number(item.qty) || 0,
+        salePrice: Number(item.salePrice) || 0,
+        purchasePrice: Number(item.purchasePrice) || 0,
+        supplier: String(item.supplier || "")
+      }));
+
+      state = {
+        salePrices: data.salePrices || {},
+        items: validItems,
+        invoiceName: String(data.invoiceName || "")
+      };
+
+      nextId = state.items.reduce((m,it)=>Math.max(m,it.id||0),0)+1;
+      saveState();
+
+      const nameInput = document.getElementById("invoiceName");
+      if(nameInput) nameInput.value = state.invoiceName;
+
+      buildCatalog();
+      renderColumns();
+
+      alert("فاکتور با موفقیت لود شد.");
+    }catch(e){
+      alert("فایل فاکتور معتبر نیست یا مربوط به این دفتر نیست.");
+    }
+  };
+
+  reader.readAsText(file, "UTF-8");
+}
+
+document.getElementById("saveInvoice").addEventListener("click", saveInvoiceToFile);
+
+document.getElementById("loadInvoice").addEventListener("click", ()=>{
+  document.getElementById("invoiceFile").click();
+});
+
+document.getElementById("invoiceFile").addEventListener("change", (e)=>{
+  loadInvoiceFromFile(e.target.files[0]);
+  e.target.value = "";
+});
+
+  document.getElementById('resetAll').addEventListener('click', ()=>{
+  if(confirm('همه‌ی کالاهای اضافه‌شده و قیمت‌های ویرایش‌شده پاک بشه؟')){
+    state = {salePrices:{}, items:[]};
+    saveState();
+    activeCategory = 'همه';
+    renderCategoryTabs();
+    buildCatalog();
+    renderColumns();
+  }
+});
+document.getElementById('exportImage').addEventListener('click', exportTableImage);
+</script>
+</body>
+</html>
