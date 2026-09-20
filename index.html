@@ -301,6 +301,7 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
     <button class="btn" id="loadInvoice">📂 لود فاکتور</button>
     <button class="btn" id="exportMaryam">خروجی مریم</button>
     <button class="btn" id="exportAli">خروجی علی</button>
+    <button class="btn" id="exportBoth" style="border-color:var(--green);color:var(--green);font-weight:700;">📊 خروجی سود هر دو نفر (کنار هم)</button>
     <button class="btn" id="resetAll">پاک کردن همه چیز</button>
     <input id="invoiceFile" type="file" accept=".json,application/json" style="display:none">
   </div>
@@ -1001,6 +1002,192 @@ function exportTableImage(ownerFilter){
 
 document.getElementById('exportAli').addEventListener('click', ()=>exportTableImage("ali"));
 document.getElementById('exportMaryam').addEventListener('click', ()=>exportTableImage("maryam"));
+
+// ===== خروجی ترکیبی: سود هر دو نفر کنار هم، در یک عکس، با تمام جزئیات کالاها =====
+function exportCombinedImage(){
+  const items = Array.isArray(state.items) ? state.items : [];
+  if(items.length === 0){
+    alert("هنوز هیچ کالایی برای هیچ‌کدام ثبت نشده است.");
+    return;
+  }
+
+  const aliItems = items.filter(x => x.owner === "ali");
+  const maryamItems = items.filter(x => x.owner === "maryam");
+  const aliLabel = ownerName('ali');
+  const maryamLabel = ownerName('maryam');
+  const faNum = n => fmt(Number(n)||0);
+
+  function calcFor(list){
+    let capital=0, ownProfit=0, totalQty=0;
+    list.forEach(item=>{
+      const q=Number(item.qty)||0, buy=Number(item.purchasePrice)||0, sell=Number(item.salePrice)||0;
+      capital += q*buy;
+      ownProfit += q*(sell-buy);
+      totalQty += q;
+    });
+    return {capital, ownProfit, totalQty};
+  }
+  const aliCalc = calcFor(aliItems);
+  const maryamCalc = calcFor(maryamItems);
+  const totalProfit = items.reduce((sum,item)=>{
+    const q=Number(item.qty)||0, buy=Number(item.purchasePrice)||0, sell=Number(item.salePrice)||0;
+    return sum + q*(sell-buy);
+  },0);
+  const finalShare = totalProfit/2;
+  const aliFinalPayable = aliCalc.capital + finalShare;
+  const maryamFinalPayable = maryamCalc.capital + finalShare;
+
+  // --- تنظیمات هندسی ---
+  const margin=36, colGap=32, contentW=610;
+  const colW=[248,50,100,102,110]; // کالا، تعداد، فروش، سرمایه، سود
+  const nameFontSize=15, nameLineH=20, rowVPad=20, minRowH=52;
+  const headH=48, ownerLabelH=62, summaryH=176, footerRowH=56, gapAfterSummary=14, gapAfterHeader=6;
+  const titleH=118, bottomMargin=40;
+  const W = margin*2 + contentW*2 + colGap;
+
+  // --- کانتکست موقت فقط برای اندازه‌گیری متن (برای محاسبه ارتفاع دقیق قبل از ساخت کانواس نهایی) ---
+  const mctx = document.createElement("canvas").getContext("2d");
+  function mFont(size,weight="600"){ mctx.font = `${weight} ${size}px Tahoma, Arial, sans-serif`; }
+  function wrapLines(txt,maxWidth,size,weight){
+    mFont(size,weight);
+    const words=String(txt).split(/\s+/);
+    let lines=[], line="";
+    for(const w of words){
+      const test=line?line+" "+w:w;
+      if(mctx.measureText(test).width>maxWidth && line){ lines.push(line); line=w; }
+      else line=test;
+    }
+    if(line) lines.push(line);
+    return lines.length?lines:[""];
+  }
+
+  function prepRows(list){
+    let totalH=0;
+    const rows = list.map(item=>{
+      const nameLines = wrapLines(itemName(item), colW[0]-18, nameFontSize, "700");
+      const rh = Math.max(minRowH, nameLines.length*nameLineH + rowVPad);
+      totalH += rh;
+      return {item, nameLines, rh};
+    });
+    return {rows, totalH};
+  }
+  const aliPrep = prepRows(aliItems);
+  const maryamPrep = prepRows(maryamItems);
+
+  const aliColH = ownerLabelH + summaryH + gapAfterSummary + headH + gapAfterHeader + aliPrep.totalH + footerRowH;
+  const maryamColH = ownerLabelH + summaryH + gapAfterSummary + headH + gapAfterHeader + maryamPrep.totalH + footerRowH;
+  const bodyH = Math.max(aliColH, maryamColH, headH+minRowH+footerRowH);
+  const logicalH = titleH + bodyH + bottomMargin;
+
+  // --- ساخت کانواس نهایی ---
+  const SCALE=3;
+  const canvas=document.createElement("canvas");
+  canvas.width=W*SCALE; canvas.height=logicalH*SCALE;
+  const ctx=canvas.getContext("2d");
+  ctx.scale(SCALE,SCALE);
+  ctx.fillStyle="#faf8f4";
+  ctx.fillRect(0,0,W,logicalH);
+
+  function font(size,weight="600"){ ctx.font=`${weight} ${size}px Tahoma, Arial, sans-serif`; }
+  function right(txt,x,y,size,weight="600",fill="#20262b"){
+    ctx.save(); ctx.direction="rtl"; ctx.textAlign="right"; ctx.textBaseline="middle";
+    font(size,weight); ctx.fillStyle=fill; ctx.fillText(String(txt),x,y); ctx.restore();
+  }
+  function center(txt,x,y,size,weight="600",fill="#20262b"){
+    ctx.save(); ctx.direction="rtl"; ctx.textAlign="center"; ctx.textBaseline="middle";
+    font(size,weight); ctx.fillStyle=fill; ctx.fillText(String(txt),x,y); ctx.restore();
+  }
+  function rounded(x,y,w,h,r,fill,stroke){
+    ctx.beginPath(); ctx.roundRect(x,y,w,h,r);
+    if(fill){ctx.fillStyle=fill;ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}
+  }
+
+  let y=margin;
+  center("دفتر مشترک محصولات غیاث — گزارش سود هر دو نفر",W/2,y+28,30,"900");
+  const invoiceName=(document.getElementById("invoiceName")?.value||"").trim();
+  center((invoiceName?("نام فاکتور: "+invoiceName+"   |   "):"")+"سود کل شراکت: "+faNum(totalProfit)+" تومان   |   سهم هر نفر: "+faNum(finalShare)+" تومان",W/2,y+64,20,"700","#555d66");
+  y+=titleH;
+
+  // ستون راست = نفر اول (علی) — ستون چپ = نفر دوم (مریم)، مطابق ترتیب صفحه
+  const colX = { right: W-margin-contentW, left: margin };
+
+  function drawColumn(x, ownerLabel, calc, finalPayable, prep, accentColor, accentSoft){
+    let cy=y;
+    right(ownerLabel, x+contentW, cy+24, 24, "900", accentColor);
+    right(prep.rows.length+" قلم کالا", x+contentW, cy+48, 14, "700", "#8a8378");
+    cy+=ownerLabelH;
+
+    rounded(x,cy,contentW,summaryH,16,"#ffffff","#c9c2b7");
+    right("سرمایه: "+faNum(calc.capital)+" تومان",x+contentW-22,cy+40,19,"700","#555d66");
+    right("سود نهایی (سهم ۵۰٪ از سود کل): "+faNum(finalShare)+" تومان",x+contentW-22,cy+82,19,"700","#555d66");
+    right("مبلغ واریزی نهایی",x+contentW-22,cy+120,20,"900","#20262b");
+    right(faNum(finalPayable)+" تومان",x+contentW-22,cy+156,30,"900",accentColor);
+    cy+=summaryH+gapAfterSummary;
+
+    const tColX=[]; let cursor=x+contentW;
+    for(const w of colW){ cursor-=w; tColX.push(cursor); }
+    const headers=["کالا","تعداد","فروش","سرمایه","سود"];
+    rounded(x,cy,contentW,headH,8,"#f3f0e8","#ddd8cc");
+    headers.forEach((h,i)=>right(h,tColX[i]+colW[i]-8,cy+headH/2,14,"900","#515962"));
+    cy+=headH+gapAfterHeader;
+
+    prep.rows.forEach((row,idx)=>{
+      const item=row.item, rh=row.rh;
+      const q=Number(item.qty)||0, buy=Number(item.purchasePrice)||0, sell=Number(item.salePrice)||0;
+      const itemCapital=q*buy, itemProfit=q*(sell-buy);
+      ctx.fillStyle=idx%2===0?"#ffffff":"#fbfaf7";
+      ctx.fillRect(x,cy,contentW,rh);
+      ctx.save(); ctx.direction="rtl"; ctx.textAlign="right"; ctx.textBaseline="top";
+      font(nameFontSize,"700"); ctx.fillStyle="#20262b";
+      const nameX=tColX[0]+colW[0]-9;
+      let ny=cy+(rh-row.nameLines.length*nameLineH)/2;
+      row.nameLines.forEach(line=>{ ctx.fillText(line,nameX,ny); ny+=nameLineH; });
+      ctx.restore();
+      center(faNum(q),tColX[1]+colW[1]/2,cy+rh/2,15,"900");
+      right(faNum(sell),tColX[2]+colW[2]-8,cy+rh/2,14,"800");
+      right(faNum(itemCapital),tColX[3]+colW[3]-8,cy+rh/2,14,"800");
+      right(faNum(itemProfit),tColX[4]+colW[4]-8,cy+rh/2,16,"900",accentColor);
+      ctx.strokeStyle="#ebe7de"; ctx.lineWidth=1; ctx.strokeRect(x,cy,contentW,rh);
+      cy+=rh;
+    });
+
+    if(prep.rows.length===0){
+      ctx.fillStyle="#fbfaf7"; ctx.fillRect(x,cy,contentW,minRowH);
+      center("کالایی ثبت نشده",x+contentW/2,cy+minRowH/2,14,"600","#8a8378");
+      cy+=minRowH;
+    }
+
+    ctx.fillStyle=accentSoft; ctx.fillRect(x,cy,contentW,footerRowH);
+    right("جمع",x+contentW-14,cy+footerRowH/2,17,"900");
+    center(faNum(calc.totalQty),tColX[1]+colW[1]/2,cy+footerRowH/2,15,"900");
+    right(faNum(calc.capital)+" ت",tColX[3]+colW[3]-8,cy+footerRowH/2,15,"900");
+    right(faNum(calc.ownProfit)+" ت",tColX[4]+colW[4]-8,cy+footerRowH/2,17,"900",accentColor);
+    ctx.strokeStyle="#ddd8cc"; ctx.lineWidth=1.5; ctx.strokeRect(x,cy,contentW,footerRowH);
+  }
+
+  drawColumn(colX.right, aliLabel, aliCalc, aliFinalPayable, aliPrep, "#0f3d3e", "#e4efee");
+  drawColumn(colX.left, maryamLabel, maryamCalc, maryamFinalPayable, maryamPrep, "#a6612e", "#faeee0");
+
+  // خط جداکننده وسط
+  ctx.strokeStyle="#ddd6c6"; ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(W/2,y-6); ctx.lineTo(W/2,y+bodyH+6); ctx.stroke();
+
+  canvas.toBlob(blob=>{
+    if(!blob){alert("ساخت خروجی عکس ناموفق بود.");return;}
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    const safeName=(invoiceName||"مشترک").replace(/[\\/:*?"<>|]/g,"_").slice(0,60);
+    a.download="فاکتور_سود_دو_نفر_"+safeName+".png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+  },"image/png",1);
+}
+document.getElementById('exportBoth').addEventListener('click', exportCombinedImage);
 
 
 // ذخیره و لود فاکتور به صورت فایل JSON
