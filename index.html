@@ -89,6 +89,21 @@
   @media(max-width:760px){
     .invoice-name-box{align-items:stretch;flex-direction:column;}
   }
+  .owner-names-box{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin:12px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  }
+  .owner-names-box .field{display:flex;flex-direction:column;gap:4px;min-width:0;}
+  .owner-names-box label{font-size:.78rem;font-weight:700;}
+  .owner-names-box input{
+    border:1px solid #d9c98f;background:#fffdf7;border-radius:7px;padding:7px 9px;
+    font-family:inherit;font-size:.85rem;color:var(--ink);width:100%;
+  }
+  .owner-names-box input:focus{outline:2px solid #c8862f;outline-offset:1px;}
+  .owner-names-box .hint{grid-column:1/-1;font-size:.72rem;color:var(--ink-soft);}
+  @media(max-width:760px){
+    .owner-names-box{grid-template-columns:1fr;}
+  }
 display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
   .cat-tab{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 13px;border-radius:20px;font-family:inherit;font-size:.82rem;cursor:pointer;white-space:nowrap;}
   .cat-tab:hover{border-color:var(--ali);color:var(--ali);}
@@ -183,16 +198,28 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
 <body>
 <div class="wrap">
   <h1>دفتر مشترک محصولات غیاث</h1>
-  <p class="sub">سید علی محمد مدرسی و مریم مدرسی — لیست قیمت مرداد ۱۴۰۵</p>
+  <p class="sub" id="subTitle">سید علی محمد مدرسی و مریم مدرسی — لیست قیمت مرداد ۱۴۰۵</p>
+
+  <div class="owner-names-box">
+    <div class="field">
+      <label for="ownerNameAli">نام نفر اول (ستون اول)</label>
+      <input id="ownerNameAli" type="text" placeholder="مثلاً: سید علی محمد مدرسی">
+    </div>
+    <div class="field">
+      <label for="ownerNameMaryam">نام نفر دوم (ستون دوم)</label>
+      <input id="ownerNameMaryam" type="text" placeholder="مثلاً: مریم مدرسی">
+    </div>
+    <div class="hint">این اسم‌ها فقط روی همین دستگاه/مرورگر ذخیره می‌شن؛ هر کسی از این صفحه استفاده کنه می‌تونه اسم خودش رو اینجا بذاره.</div>
+  </div>
 
   <div class="stats">
     <div class="stat ali">
-      <div class="lbl">جمع سرمایه علی</div>
+      <div class="lbl" id="lblCapAli">جمع سرمایه علی</div>
       <div class="num" id="capAli">۰</div>
       <div class="foot">تومان</div>
     </div>
     <div class="stat maryam">
-      <div class="lbl">جمع سرمایه مریم</div>
+      <div class="lbl" id="lblCapMaryam">جمع سرمایه مریم</div>
       <div class="num" id="capMaryam">۰</div>
       <div class="foot">تومان</div>
     </div>
@@ -206,12 +233,12 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
   <div class="account-box">
     <div class="account-title">خلاصه سرمایه و سود شراکتی</div>
     <div class="account-grid">
-      <div class="account-item"><span>سرمایه علی</span><strong id="accountAliCapital">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span>سود فروش‌های علی</span><strong id="aliOwnProfit">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span>سهم نهایی علی</span><strong id="aliShare">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span>سرمایه مریم</span><strong id="accountMaryamCapital">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span>سود فروش‌های مریم</span><strong id="maryamOwnProfit">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span>سهم نهایی مریم</span><strong id="maryamShare">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span id="lblAliCapital">سرمایه علی</span><strong id="accountAliCapital">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span id="lblAliOwnProfit">سود فروش‌های علی</span><strong id="aliOwnProfit">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span id="lblAliShare">سهم نهایی علی</span><strong id="aliShare">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span id="lblMaryamCapital">سرمایه مریم</span><strong id="accountMaryamCapital">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span id="lblMaryamOwnProfit">سود فروش‌های مریم</span><strong id="maryamOwnProfit">۰</strong><small>تومان</small></div>
+      <div class="account-item"><span id="lblMaryamShare">سهم نهایی مریم</span><strong id="maryamShare">۰</strong><small>تومان</small></div>
       <div class="account-item"><span>جمع سرمایه</span><strong id="totalCapital">۰</strong><small>تومان</small></div>
       <div class="account-item"><span>جمع سود کل</span><strong id="accountTotalProfit">۰</strong><small>تومان</small></div>
       <div class="account-item"><span>سود هر نفر (۵۰٪)</span><strong id="accountHalfProfit">۰</strong><small>تومان</small></div>
@@ -225,7 +252,7 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
   </div>
 
   <h2>۱. لیست کالاها و قیمت‌ها</h2>
-  <div class="note">قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون سید علی محمد مدرسی یا مریم مدرسی اضافه‌ش کنید.</div>
+  <div class="note" id="catalogNote">قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون سید علی محمد مدرسی یا مریم مدرسی اضافه‌ش کنید.</div>
 
   <div id="categoryTabs" class="category-tabs"></div>
   <div class="table-scroll">
@@ -250,7 +277,7 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
   <datalist id="supplierList"></datalist>
   <div class="invoice-columns">
     <div class="invoice-box ali">
-      <div class="invoice-head"><span>سید علی محمد مدرسی</span><span id="aliCount">۰ قلم</span></div>
+      <div class="invoice-head"><span id="aliHeadName">سید علی محمد مدرسی</span><span id="aliCount">۰ قلم</span></div>
       <div class="invoice-table-wrap">
         <table class="invoice-table">
           <thead><tr>
@@ -265,7 +292,7 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
     </div>
 
     <div class="invoice-box maryam">
-      <div class="invoice-head"><span>مریم مدرسی</span><span id="maryamCount">۰ قلم</span></div>
+      <div class="invoice-head"><span id="maryamHeadName">مریم مدرسی</span><span id="maryamCount">۰ قلم</span></div>
       <div class="invoice-table-wrap">
         <table class="invoice-table">
           <thead><tr>
@@ -379,6 +406,37 @@ if(!state.salePrices) state.salePrices = {};
 if(!state.buyPrices) state.buyPrices = {};
 if(!state.items) state.items = [];
 if(!Array.isArray(state.suppliers)) state.suppliers = [];
+if(!state.ownerNames || typeof state.ownerNames !== "object") state.ownerNames = {};
+
+const DEFAULT_OWNER_NAMES = { ali: "سید علی محمد مدرسی", maryam: "مریم مدرسی" };
+function ownerName(key){
+  const v = state.ownerNames && state.ownerNames[key];
+  return (v && String(v).trim()) ? String(v).trim() : DEFAULT_OWNER_NAMES[key];
+}
+function updateOwnerNameDisplays(){
+  const ali = ownerName('ali'), maryam = ownerName('maryam');
+  const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+
+  setText('subTitle', ali + " و " + maryam + " — لیست قیمت مرداد ۱۴۰۵");
+  setText('catalogNote', "قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون " + ali + " یا " + maryam + " اضافه‌ش کنید.");
+  setText('aliHeadName', ali);
+  setText('maryamHeadName', maryam);
+  setText('lblCapAli', "جمع سرمایه " + ali);
+  setText('lblCapMaryam', "جمع سرمایه " + maryam);
+  setText('lblAliCapital', "سرمایه " + ali);
+  setText('lblAliOwnProfit', "سود فروش‌های " + ali);
+  setText('lblAliShare', "سهم نهایی " + ali);
+  setText('lblMaryamCapital', "سرمایه " + maryam);
+  setText('lblMaryamOwnProfit', "سود فروش‌های " + maryam);
+  setText('lblMaryamShare', "سهم نهایی " + maryam);
+  setText('exportAli', "خروجی " + ali);
+  setText('exportMaryam', "خروجی " + maryam);
+
+  const aliInput = document.getElementById('ownerNameAli');
+  const maryamInput = document.getElementById('ownerNameMaryam');
+  if(aliInput && document.activeElement !== aliInput) aliInput.value = ali;
+  if(maryamInput && document.activeElement !== maryamInput) maryamInput.value = maryam;
+}
 if(state.version !== PRODUCTS_VERSION){
   // Product list/prices were updated in the file — drop any old manually-saved
   // sale-price overrides so the new built-in prices actually show up.
@@ -460,8 +518,8 @@ function buildCatalog(){
       <td><input class="editable" type="text" data-role="supplier" list="supplierList" placeholder="تامین‌کننده"></td>
       <td>
         <select class="mini" data-role="owner">
-          <option value="ali">سید علی محمد مدرسی</option>
-          <option value="maryam">مریم مدرسی</option>
+          <option value="ali">${esc(ownerName('ali'))}</option>
+          <option value="maryam">${esc(ownerName('maryam'))}</option>
         </select>
       </td>
       <td><button class="add-btn" data-role="add">افزودن</button></td>
@@ -570,8 +628,8 @@ function renderColumns(){
       <td><input class="invoice-edit" type="number" min="0" value="${sale}" data-edit="sale"></td>
       <td>
         <select class="invoice-owner" data-edit="owner">
-          <option value="ali" ${item.owner==='ali'?'selected':''}>سید علی محمد مدرسی</option>
-          <option value="maryam" ${item.owner==='maryam'?'selected':''}>مریم مدرسی</option>
+          <option value="ali" ${item.owner==='ali'?'selected':''}>${esc(ownerName('ali'))}</option>
+          <option value="maryam" ${item.owner==='maryam'?'selected':''}>${esc(ownerName('maryam'))}</option>
         </select>
       </td>
       <td class="profit-cell">${fmt(profit)}</td>
@@ -678,9 +736,9 @@ function renderColumns(){
   const box = document.getElementById('profitSettlement');
   if(box){
     box.textContent = settlement > 0
-      ? `برای مساوی شدن سهم سود، مریم ${fmt(settlement)} تومان به علی می‌دهد`
+      ? `برای مساوی شدن سهم سود، ${ownerName('maryam')} ${fmt(settlement)} تومان به ${ownerName('ali')} می‌دهد`
       : settlement < 0
-        ? `برای مساوی شدن سهم سود، علی ${fmt(Math.abs(settlement))} تومان به مریم می‌دهد`
+        ? `برای مساوی شدن سهم سود، ${ownerName('ali')} ${fmt(Math.abs(settlement))} تومان به ${ownerName('maryam')} می‌دهد`
         : "سود هر دو نفر برابر است و تسویه‌ای لازم نیست";
   }
   refreshSupplierList();
@@ -695,6 +753,28 @@ if(invoiceNameInput){
   });
 }
 
+const ownerNameAliInput = document.getElementById("ownerNameAli");
+if(ownerNameAliInput){
+  ownerNameAliInput.addEventListener("input", ()=>{
+    state.ownerNames.ali = ownerNameAliInput.value;
+    saveState();
+    updateOwnerNameDisplays();
+    buildCatalog();
+    renderColumns();
+  });
+}
+const ownerNameMaryamInput = document.getElementById("ownerNameMaryam");
+if(ownerNameMaryamInput){
+  ownerNameMaryamInput.addEventListener("input", ()=>{
+    state.ownerNames.maryam = ownerNameMaryamInput.value;
+    saveState();
+    updateOwnerNameDisplays();
+    buildCatalog();
+    renderColumns();
+  });
+}
+
+updateOwnerNameDisplays();
 renderCategoryTabs();
 buildCatalog();
 renderColumns();
@@ -837,7 +917,7 @@ function exportTableImage(ownerFilter){
   }
 
   const faNum = n => fmt(Number(n)||0);
-  const ownerName = ownerFilter === "ali" ? "سید علی محمد مدرسی" : "مریم مدرسی";
+  const ownerLabel = ownerFilter === "ali" ? ownerName('ali') : ownerName('maryam');
 
   let capital=0, ownProfit=0;
   selectedItems.forEach(item=>{
@@ -905,7 +985,7 @@ function exportTableImage(ownerFilter){
   let y=margin;
 
   right("دفتر مشترک محصولات غیاث",W-margin,y+30,40,"900");
-  right("گزارش اختصاصی "+ownerName,W-margin,y+76,25,"800");
+  right("گزارش اختصاصی "+ownerLabel,W-margin,y+76,25,"800");
   const invoiceName=(document.getElementById("invoiceName")?.value||"").trim();
   if(invoiceName) right("نام فاکتور: "+invoiceName,W-margin,y+118,25,"900");
   y+=titleH;
@@ -924,7 +1004,7 @@ function exportTableImage(ownerFilter){
   for(const w of colW){cursor-=w; colX.push(cursor);}
   const headers=["کالا","تعداد","قیمت فروش","سرمایه","سود"];
 
-  right(ownerName,W-margin,y+30,28,"900");
+  right(ownerLabel,W-margin,y+30,28,"900");
   y+=58;
   rounded(margin,y,W-2*margin,headH,9,"#f3f0e8","#ddd8cc");
   headers.forEach((h,i)=>right(h,colX[i]+colW[i]-10,y+headH/2,18,"900","#515962"));
@@ -960,9 +1040,8 @@ function exportTableImage(ownerFilter){
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
     a.href=url;
-    a.download=ownerFilter==="ali"
-      ? "فاکتور_علی_با_مبلغ_واریزی_نهایی.png"
-      : "فاکتور_مریم_با_مبلغ_واریزی_نهایی.png";
+    const safeOwnerLabel = ownerLabel.replace(/[\\/:*?"<>|]/g,"_").slice(0,60) || (ownerFilter==="ali"?"علی":"مریم");
+    a.download="فاکتور_"+safeOwnerLabel+"_با_مبلغ_واریزی_نهایی.png";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -983,6 +1062,7 @@ function saveInvoiceToFile(){
     version: 1,
     savedAt: new Date().toISOString(),
     invoiceName: invoiceName,
+    ownerNames: state.ownerNames || {},
     salePrices: state.salePrices || {},
     items: Array.isArray(state.items) ? state.items : []
   };
@@ -1035,6 +1115,7 @@ function loadInvoiceFromFile(file){
         suppliers: state.suppliers || [],
         items: validItems,
         invoiceName: String(data.invoiceName || ""),
+        ownerNames: (data.ownerNames && typeof data.ownerNames === "object") ? data.ownerNames : (state.ownerNames || {}),
         version: PRODUCTS_VERSION
       };
 
@@ -1044,6 +1125,7 @@ function loadInvoiceFromFile(file){
       const nameInput = document.getElementById("invoiceName");
       if(nameInput) nameInput.value = state.invoiceName;
 
+      updateOwnerNameDisplays();
       buildCatalog();
       renderColumns();
 
@@ -1069,9 +1151,10 @@ document.getElementById("invoiceFile").addEventListener("change", (e)=>{
 
   document.getElementById('resetAll').addEventListener('click', ()=>{
   if(confirm('همه‌ی کالاهای اضافه‌شده و قیمت‌های ویرایش‌شده پاک بشه؟')){
-    state = {salePrices:{}, buyPrices:{}, suppliers: state.suppliers || [], items:[], version: PRODUCTS_VERSION};
+    state = {salePrices:{}, buyPrices:{}, suppliers: state.suppliers || [], items:[], ownerNames: state.ownerNames || {}, version: PRODUCTS_VERSION};
     saveState();
     activeCategory = 'همه';
+    updateOwnerNameDisplays();
     renderCategoryTabs();
     buildCatalog();
     renderColumns();
