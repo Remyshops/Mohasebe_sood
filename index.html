@@ -305,6 +305,7 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
     <button class="btn" id="resetAll">پاک کردن همه چیز</button>
     <input id="invoiceFile" type="file" accept=".json,application/json" style="display:none">
   </div>
+  <div style="font-size:.66rem;color:#b3ac9d;text-align:left;margin-top:2px;">نسخه ابزار: 2026-09-20-r3 (اگه این عدد رو تو صفحه‌تون نمی‌بینید، فایل قدیمیه)</div>
 </div>
 
 <script>
@@ -1039,7 +1040,7 @@ function exportCombinedImage(){
 
   // --- تنظیمات هندسی ---
   const margin=36, colGap=32, contentW=610;
-  const colW=[248,50,100,102,110]; // کالا، تعداد، فروش، سرمایه، سود
+  const colW=[210,44,84,84,94,94]; // کالا، تعداد، خرید، فروش، سرمایه، سود
   const nameFontSize=15, nameLineH=20, rowVPad=20, minRowH=52;
   const headH=48, ownerLabelH=62, summaryH=176, footerRowH=56, gapAfterSummary=14, gapAfterHeader=6;
   const titleH=118, bottomMargin=40;
@@ -1127,7 +1128,7 @@ function exportCombinedImage(){
 
     const tColX=[]; let cursor=x+contentW;
     for(const w of colW){ cursor-=w; tColX.push(cursor); }
-    const headers=["کالا","تعداد","فروش","سرمایه","سود"];
+    const headers=["کالا","تعداد","خرید","فروش","سرمایه","سود"];
     rounded(x,cy,contentW,headH,8,"#f3f0e8","#ddd8cc");
     headers.forEach((h,i)=>right(h,tColX[i]+colW[i]-8,cy+headH/2,14,"900","#515962"));
     cy+=headH+gapAfterHeader;
@@ -1145,9 +1146,10 @@ function exportCombinedImage(){
       row.nameLines.forEach(line=>{ ctx.fillText(line,nameX,ny); ny+=nameLineH; });
       ctx.restore();
       center(faNum(q),tColX[1]+colW[1]/2,cy+rh/2,15,"900");
-      right(faNum(sell),tColX[2]+colW[2]-8,cy+rh/2,14,"800");
-      right(faNum(itemCapital),tColX[3]+colW[3]-8,cy+rh/2,14,"800");
-      right(faNum(itemProfit),tColX[4]+colW[4]-8,cy+rh/2,16,"900",accentColor);
+      right(faNum(buy),tColX[2]+colW[2]-8,cy+rh/2,13,"700","#7a7468");
+      right(faNum(sell),tColX[3]+colW[3]-8,cy+rh/2,14,"800");
+      right(faNum(itemCapital),tColX[4]+colW[4]-8,cy+rh/2,14,"800");
+      right(faNum(itemProfit),tColX[5]+colW[5]-8,cy+rh/2,16,"900",accentColor);
       ctx.strokeStyle="#ebe7de"; ctx.lineWidth=1; ctx.strokeRect(x,cy,contentW,rh);
       cy+=rh;
     });
@@ -1161,8 +1163,8 @@ function exportCombinedImage(){
     ctx.fillStyle=accentSoft; ctx.fillRect(x,cy,contentW,footerRowH);
     right("جمع",x+contentW-14,cy+footerRowH/2,17,"900");
     center(faNum(calc.totalQty),tColX[1]+colW[1]/2,cy+footerRowH/2,15,"900");
-    right(faNum(calc.capital)+" ت",tColX[3]+colW[3]-8,cy+footerRowH/2,15,"900");
-    right(faNum(calc.ownProfit)+" ت",tColX[4]+colW[4]-8,cy+footerRowH/2,17,"900",accentColor);
+    right(faNum(calc.capital)+" ت",tColX[4]+colW[4]-8,cy+footerRowH/2,15,"900");
+    right(faNum(calc.ownProfit)+" ت",tColX[5]+colW[5]-8,cy+footerRowH/2,17,"900",accentColor);
     ctx.strokeStyle="#ddd8cc"; ctx.lineWidth=1.5; ctx.strokeRect(x,cy,contentW,footerRowH);
   }
 
