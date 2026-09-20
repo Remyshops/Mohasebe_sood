@@ -182,17 +182,12 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
     table{font-size:.85rem;}
   }
 
-  /* --- تامین‌کننده و قیمت خرید زیر نام هر کالا + تامین‌کننده‌ی گروهی --- */
+  /* --- قیمت خرید زیر نام هر کالا --- */
   .item-sub{display:flex;gap:4px;align-items:center;margin-top:5px;}
   .item-sub .invoice-edit{text-align:right;}
-  .item-sub .sub-supplier{flex:1.7;}
   .item-sub .sub-buy{flex:1;min-width:64px;text-align:center;}
   .item-sub label{font-size:.62rem;color:var(--ink-soft);white-space:nowrap;}
   .unmatched{color:#a6423a;font-size:.66rem;margin-top:3px;}
-  .bulk-supplier{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 4px;}
-  .bulk-supplier label{font-size:.8rem;font-weight:700;white-space:nowrap;}
-  .bulk-supplier input{flex:1;min-width:170px;border:1px solid #d9c98f;background:#fffdf7;border-radius:7px;padding:7px 9px;font-family:inherit;font-size:.82rem;color:var(--ink);}
-  .bulk-supplier input:focus{outline:2px solid #c8862f;outline-offset:1px;}
 </style>
 </head>
 <body>
@@ -260,7 +255,7 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
     <thead>
       <tr>
         <th>نام کالا</th><th>قیمت خرید</th><th>قیمت فروش</th>
-        <th>تعداد</th><th>تامین‌کننده</th><th>مال کی</th><th>افزودن</th>
+        <th>تعداد</th><th>مال کی</th><th>افزودن</th>
       </tr>
     </thead>
     <tbody id="catalogBody"></tbody>
@@ -269,12 +264,6 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
 
   <h2 id="listsHeading">۲. کالاهای هرکدام</h2>
   <div id="importNote" class="note" style="display:none;"></div>
-  <div class="bulk-supplier">
-    <label for="bulkSupplier">تامین‌کننده‌ی همه‌ی اقلام</label>
-    <input id="bulkSupplier" type="text" list="supplierList" placeholder="یک تامین‌کننده انتخاب یا تایپ کنید">
-    <button class="btn" id="applyBulkSupplier" type="button">اعمال روی اقلامِ بدون تامین‌کننده</button>
-  </div>
-  <datalist id="supplierList"></datalist>
   <div class="invoice-columns">
     <div class="invoice-box ali">
       <div class="invoice-head"><span id="aliHeadName">سید علی محمد مدرسی</span><span id="aliCount">۰ قلم</span></div>
@@ -405,7 +394,6 @@ let state = loadState();
 if(!state.salePrices) state.salePrices = {};
 if(!state.buyPrices) state.buyPrices = {};
 if(!state.items) state.items = [];
-if(!Array.isArray(state.suppliers)) state.suppliers = [];
 if(!state.ownerNames || typeof state.ownerNames !== "object") state.ownerNames = {};
 
 const DEFAULT_OWNER_NAMES = { ali: "سید علی محمد مدرسی", maryam: "مریم مدرسی" };
@@ -515,7 +503,6 @@ function buildCatalog(){
       <td><input class="editable" type="number" min="0" data-role="buy" value="${bp!==null?bp:''}" placeholder="—"></td>
       <td><input class="editable" type="number" min="0" data-role="sale" value="${sp!==null?sp:''}" placeholder="—"></td>
       <td><input class="editable" type="number" min="0" data-role="qty" placeholder="0" style="max-width:60px"></td>
-      <td><input class="editable" type="text" data-role="supplier" list="supplierList" placeholder="تامین‌کننده"></td>
       <td>
         <select class="mini" data-role="owner">
           <option value="ali">${esc(ownerName('ali'))}</option>
@@ -546,7 +533,6 @@ function buildCatalog(){
       }
 
       const owner = tr.querySelector('[data-role="owner"]').value;
-      const supplier = (tr.querySelector('[data-role="supplier"]').value || "").trim();
       const salePriceNow = saleInput.value === "" ? 0 : parseFloat(saleInput.value);
 
       state.items.push({
@@ -555,8 +541,7 @@ function buildCatalog(){
         owner: owner,
         qty: qty,
         salePrice: salePriceNow,
-        purchasePrice: (buyInput.value === "" ? 0 : parseFloat(buyInput.value)) || 0,
-        supplier: supplier
+        purchasePrice: (buyInput.value === "" ? 0 : parseFloat(buyInput.value)) || 0
       });
 
       saveState();
@@ -573,19 +558,6 @@ function itemName(item){
   if(item.productIndex >= 0 && PRODUCTS[item.productIndex]) return PRODUCTS[item.productIndex][1];
   return item.customName || '—';
 }
-function rememberSupplier(name){
-  name = (name||'').trim();
-  if(!name) return;
-  if(!Array.isArray(state.suppliers)) state.suppliers = [];
-  if(!state.suppliers.includes(name)) state.suppliers.push(name);
-}
-function refreshSupplierList(){
-  const dl = document.getElementById('supplierList');
-  if(!dl) return;
-  const names = new Set(Array.isArray(state.suppliers) ? state.suppliers : []);
-  state.items.forEach(it=>{ if(it.supplier) names.add(it.supplier); });
-  dl.innerHTML = [...names].map(n=>`<option value="${esc(n)}"></option>`).join('');
-}
 function productCell(item, known){
   let top = `<div>${esc(itemName(item))}</div>`;
   if(!known){
@@ -596,7 +568,6 @@ function productCell(item, known){
       </select>`;
   }
   return top + `<div class="item-sub">
-      <input class="invoice-edit sub-supplier" list="supplierList" data-edit="supplier" placeholder="تامین‌کننده" value="${esc(item.supplier||'')}">
       <label>خرید</label>
       <input class="invoice-edit sub-buy" type="number" min="0" data-edit="buy" value="${Number(item.purchasePrice)||0}">
     </div>`;
@@ -658,13 +629,6 @@ function renderColumns(){
       renderColumns();
     });
 
-    const supInput = tr.querySelector('[data-edit="supplier"]');
-    supInput.addEventListener('change', ()=>{
-      item.supplier = supInput.value.trim();
-      rememberSupplier(item.supplier);
-      saveState();
-      refreshSupplierList();
-    });
     const buyEdit = tr.querySelector('[data-edit="buy"]');
     buyEdit.addEventListener('change', ()=>{
       item.purchasePrice = Math.max(0, Number(buyEdit.value)||0);
@@ -741,7 +705,6 @@ function renderColumns(){
         ? `برای مساوی شدن سهم سود، ${ownerName('ali')} ${fmt(Math.abs(settlement))} تومان به ${ownerName('maryam')} می‌دهد`
         : "سود هر دو نفر برابر است و تسویه‌ای لازم نیست";
   }
-  refreshSupplierList();
 }
 
 const invoiceNameInput = document.getElementById("invoiceName");
@@ -778,19 +741,6 @@ updateOwnerNameDisplays();
 renderCategoryTabs();
 buildCatalog();
 renderColumns();
-
-/* ---------- تامین‌کننده‌ی گروهی ---------- */
-document.getElementById('applyBulkSupplier').addEventListener('click', ()=>{
-  const inp = document.getElementById('bulkSupplier');
-  const name = inp.value.trim();
-  if(!name){ inp.focus(); return; }
-  let n = 0;
-  state.items.forEach(it=>{ if(!it.supplier){ it.supplier = name; n++; } });
-  rememberSupplier(name);
-  saveState();
-  renderColumns();
-  if(!n) alert('همه‌ی اقلام از قبل تامین‌کننده دارند.');
-});
 
 /* ---------- دریافت فاکتور از صفحه‌ی «صدور فاکتور» (آدرس با #inv=...) ---------- */
 function normName(s){
@@ -874,8 +824,7 @@ function importInvoiceFromHash(){
       owner: owner,
       qty: qty,
       salePrice: Math.round(price * factor),
-      purchasePrice: idx >= 0 ? (Number(getBuyPrice(idx)) || 0) : 0,
-      supplier: ""
+      purchasePrice: idx >= 0 ? (Number(getBuyPrice(idx)) || 0) : 0
     };
     if(idx < 0) row.customName = name;
     return row;
@@ -896,7 +845,7 @@ function importInvoiceFromHash(){
 
   const note = document.getElementById('importNote');
   if(note){
-    let msg = '✅ ' + incoming.length + ' قلم از فاکتور' + (data.customer ? (' ' + data.customer) : '') + ' لود شد. حالا تامین‌کننده‌ها را انتخاب کنید.';
+    let msg = '✅ ' + incoming.length + ' قلم از فاکتور' + (data.customer ? (' ' + data.customer) : '') + ' لود شد.';
     if(discount > 0) msg += ' (تخفیف ' + fmt(discount) + ' تومان به‌صورت نسبی روی قیمت فروش اقلام اعمال شد.)';
     if(unmatched) msg += ' ⚠ ' + fmt(unmatched) + ' قلم در لیست خرید پیدا نشد؛ کالا را دستی انتخاب کنید.';
     note.textContent = msg;
@@ -1105,14 +1054,12 @@ function loadInvoiceFromFile(file){
         owner: item.owner === "maryam" ? "maryam" : "ali",
         qty: Number(item.qty) || 0,
         salePrice: Number(item.salePrice) || 0,
-        purchasePrice: Number(item.purchasePrice) || 0,
-        supplier: String(item.supplier || "")
+        purchasePrice: Number(item.purchasePrice) || 0
       }));
 
       state = {
         salePrices: data.salePrices || {},
         buyPrices: state.buyPrices || {},
-        suppliers: state.suppliers || [],
         items: validItems,
         invoiceName: String(data.invoiceName || ""),
         ownerNames: (data.ownerNames && typeof data.ownerNames === "object") ? data.ownerNames : (state.ownerNames || {}),
@@ -1151,7 +1098,7 @@ document.getElementById("invoiceFile").addEventListener("change", (e)=>{
 
   document.getElementById('resetAll').addEventListener('click', ()=>{
   if(confirm('همه‌ی کالاهای اضافه‌شده و قیمت‌های ویرایش‌شده پاک بشه؟')){
-    state = {salePrices:{}, buyPrices:{}, suppliers: state.suppliers || [], items:[], ownerNames: state.ownerNames || {}, version: PRODUCTS_VERSION};
+    state = {salePrices:{}, buyPrices:{}, items:[], ownerNames: state.ownerNames || {}, version: PRODUCTS_VERSION};
     saveState();
     activeCategory = 'همه';
     updateOwnerNameDisplays();
