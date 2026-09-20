@@ -166,6 +166,18 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
     .account-grid{grid-template-columns:1fr;}
     table{font-size:.85rem;}
   }
+
+  /* --- تامین‌کننده و قیمت خرید زیر نام هر کالا + تامین‌کننده‌ی گروهی --- */
+  .item-sub{display:flex;gap:4px;align-items:center;margin-top:5px;}
+  .item-sub .invoice-edit{text-align:right;}
+  .item-sub .sub-supplier{flex:1.7;}
+  .item-sub .sub-buy{flex:1;min-width:64px;text-align:center;}
+  .item-sub label{font-size:.62rem;color:var(--ink-soft);white-space:nowrap;}
+  .unmatched{color:#a6423a;font-size:.66rem;margin-top:3px;}
+  .bulk-supplier{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 4px;}
+  .bulk-supplier label{font-size:.8rem;font-weight:700;white-space:nowrap;}
+  .bulk-supplier input{flex:1;min-width:170px;border:1px solid #d9c98f;background:#fffdf7;border-radius:7px;padding:7px 9px;font-family:inherit;font-size:.82rem;color:var(--ink);}
+  .bulk-supplier input:focus{outline:2px solid #c8862f;outline-offset:1px;}
 </style>
 </head>
 <body>
@@ -228,7 +240,14 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
   </table>
   </div>
 
-  <h2>۲. کالاهای هرکدام</h2>
+  <h2 id="listsHeading">۲. کالاهای هرکدام</h2>
+  <div id="importNote" class="note" style="display:none;"></div>
+  <div class="bulk-supplier">
+    <label for="bulkSupplier">تامین‌کننده‌ی همه‌ی اقلام</label>
+    <input id="bulkSupplier" type="text" list="supplierList" placeholder="یک تامین‌کننده انتخاب یا تایپ کنید">
+    <button class="btn" id="applyBulkSupplier" type="button">اعمال روی اقلامِ بدون تامین‌کننده</button>
+  </div>
+  <datalist id="supplierList"></datalist>
   <div class="invoice-columns">
     <div class="invoice-box ali">
       <div class="invoice-head"><span>سید علی محمد مدرسی</span><span id="aliCount">۰ قلم</span></div>
@@ -359,6 +378,7 @@ let state = loadState();
 if(!state.salePrices) state.salePrices = {};
 if(!state.buyPrices) state.buyPrices = {};
 if(!state.items) state.items = [];
+if(!Array.isArray(state.suppliers)) state.suppliers = [];
 if(state.version !== PRODUCTS_VERSION){
   // Product list/prices were updated in the file — drop any old manually-saved
   // sale-price overrides so the new built-in prices actually show up.
@@ -437,7 +457,7 @@ function buildCatalog(){
       <td><input class="editable" type="number" min="0" data-role="buy" value="${bp!==null?bp:''}" placeholder="—"></td>
       <td><input class="editable" type="number" min="0" data-role="sale" value="${sp!==null?sp:''}" placeholder="—"></td>
       <td><input class="editable" type="number" min="0" data-role="qty" placeholder="0" style="max-width:60px"></td>
-      <td><input class="editable" type="text" data-role="supplier" placeholder="تامین‌کننده"></td>
+      <td><input class="editable" type="text" data-role="supplier" list="supplierList" placeholder="تامین‌کننده"></td>
       <td>
         <select class="mini" data-role="owner">
           <option value="ali">سید علی محمد مدرسی</option>
@@ -488,6 +508,42 @@ function buildCatalog(){
   });
 }
 
+function esc(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function itemName(item){
+  if(item.productIndex >= 0 && PRODUCTS[item.productIndex]) return PRODUCTS[item.productIndex][1];
+  return item.customName || '—';
+}
+function rememberSupplier(name){
+  name = (name||'').trim();
+  if(!name) return;
+  if(!Array.isArray(state.suppliers)) state.suppliers = [];
+  if(!state.suppliers.includes(name)) state.suppliers.push(name);
+}
+function refreshSupplierList(){
+  const dl = document.getElementById('supplierList');
+  if(!dl) return;
+  const names = new Set(Array.isArray(state.suppliers) ? state.suppliers : []);
+  state.items.forEach(it=>{ if(it.supplier) names.add(it.supplier); });
+  dl.innerHTML = [...names].map(n=>`<option value="${esc(n)}"></option>`).join('');
+}
+function productCell(item, known){
+  let top = `<div>${esc(itemName(item))}</div>`;
+  if(!known){
+    top += `<div class="unmatched">⚠ در لیست خرید پیدا نشد — کالا را انتخاب کنید یا قیمت خرید را دستی بزنید</div>
+      <select class="invoice-owner" data-edit="pick" style="min-width:0;margin-top:4px;">
+        <option value="">انتخاب کالا از لیست…</option>
+        ${PRODUCTS.map((q,k)=>`<option value="${k}">${esc(q[1])}</option>`).join('')}
+      </select>`;
+  }
+  return top + `<div class="item-sub">
+      <input class="invoice-edit sub-supplier" list="supplierList" data-edit="supplier" placeholder="تامین‌کننده" value="${esc(item.supplier||'')}">
+      <label>خرید</label>
+      <input class="invoice-edit sub-buy" type="number" min="0" data-edit="buy" value="${Number(item.purchasePrice)||0}">
+    </div>`;
+}
+
 function renderColumns(){
   const aliList = document.getElementById('aliList');
   const maryamList = document.getElementById('maryamList');
@@ -499,7 +555,7 @@ function renderColumns(){
   let aliCapital=0, maryamCapital=0;
 
   state.items.forEach(item=>{
-    const p = PRODUCTS[item.productIndex];
+    const known = item.productIndex >= 0 && !!PRODUCTS[item.productIndex];
     const qty = Number(item.qty)||0;
     const sale = Number(item.salePrice)||0;
     const purchase = Number(item.purchasePrice)||0;
@@ -509,7 +565,7 @@ function renderColumns(){
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="product-name">${p[1]}</td>
+      <td class="product-name">${productCell(item, known)}</td>
       <td><input class="invoice-edit" type="number" min="0" value="${qty}" data-edit="qty" style="max-width:70px"></td>
       <td><input class="invoice-edit" type="number" min="0" value="${sale}" data-edit="sale"></td>
       <td>
@@ -543,6 +599,32 @@ function renderColumns(){
       saveState();
       renderColumns();
     });
+
+    const supInput = tr.querySelector('[data-edit="supplier"]');
+    supInput.addEventListener('change', ()=>{
+      item.supplier = supInput.value.trim();
+      rememberSupplier(item.supplier);
+      saveState();
+      refreshSupplierList();
+    });
+    const buyEdit = tr.querySelector('[data-edit="buy"]');
+    buyEdit.addEventListener('change', ()=>{
+      item.purchasePrice = Math.max(0, Number(buyEdit.value)||0);
+      saveState();
+      renderColumns();
+    });
+    const pickSel = tr.querySelector('[data-edit="pick"]');
+    if(pickSel){
+      pickSel.addEventListener('change', ()=>{
+        if(pickSel.value === "") return;
+        const k = parseInt(pickSel.value, 10);
+        item.productIndex = k;
+        delete item.customName;
+        item.purchasePrice = Number(getBuyPrice(k)) || 0;
+        saveState();
+        renderColumns();
+      });
+    }
 
     tr.querySelector('.remove-btn').addEventListener('click', ()=>{
       state.items = state.items.filter(x=>x.id !== item.id);
@@ -601,7 +683,10 @@ function renderColumns(){
         ? `برای مساوی شدن سهم سود، علی ${fmt(Math.abs(settlement))} تومان به مریم می‌دهد`
         : "سود هر دو نفر برابر است و تسویه‌ای لازم نیست";
   }
-}const invoiceNameInput = document.getElementById("invoiceName");
+  refreshSupplierList();
+}
+
+const invoiceNameInput = document.getElementById("invoiceName");
 if(invoiceNameInput){
   invoiceNameInput.value = state.invoiceName || "";
   invoiceNameInput.addEventListener("input", ()=>{
@@ -613,6 +698,134 @@ if(invoiceNameInput){
 renderCategoryTabs();
 buildCatalog();
 renderColumns();
+
+/* ---------- تامین‌کننده‌ی گروهی ---------- */
+document.getElementById('applyBulkSupplier').addEventListener('click', ()=>{
+  const inp = document.getElementById('bulkSupplier');
+  const name = inp.value.trim();
+  if(!name){ inp.focus(); return; }
+  let n = 0;
+  state.items.forEach(it=>{ if(!it.supplier){ it.supplier = name; n++; } });
+  rememberSupplier(name);
+  saveState();
+  renderColumns();
+  if(!n) alert('همه‌ی اقلام از قبل تامین‌کننده دارند.');
+});
+
+/* ---------- دریافت فاکتور از صفحه‌ی «صدور فاکتور» (آدرس با #inv=...) ---------- */
+function normName(s){
+  return String(s||'')
+    .replace(/[يى]/g,'ی').replace(/ك/g,'ک')
+    .replace(/[\u064B-\u065F\u0670\u200b-\u200f\u2060-\u2069\ufeff]/g,'')
+    .replace(/\([^)]*\)/g,' ')
+    .replace(/(^|[\s\-])(لاوندر|الوندر)(?=[\s\-]|$)/g,'$1لوندر')
+    .replace(/(^|[\s\-])(رایحه|هوا)(?=[\s\-]|$)/g,'$1')
+    .replace(/لاستیک/g,'الستیک')
+    .replace(/[\s\-–—،,.:;\/]+/g,'');
+}
+function liteKey(s){ return String(s||'').replace(/[\s\u200c]+/g,''); }
+
+/* اسم‌هایی که توی صفحه‌ی فاکتور با اسم لیست خرید فرق دارن */
+const INVOICE_ALIASES = {
+  "نانو چند منظوره خانگی": "پاک کننده چندمنظوره خانگی - 500 سی‌سی",
+  "پاک کننده چند منظوره": "پاک کننده چندمنظوره خانگی - 500 سی‌سی",
+  "پاک کننده چند منظوره خودرو": "پاک کننده چندمنظوره خودرویی - 500 سی‌سی",
+  "واکس سه کاره لاستیک داشبورد": "واکس سه‌کاره الاستیک، داشبورد، سپر - 500 سی‌سی"
+};
+/* این اسم توی کاتالوگ فاکتور برای دو کالای متفاوت (تایر شاین / بلک شاین) استفاده شده؛ با قیمت واحد تشخیص می‌دیم */
+const TWIN_NAME = "واکس براق کننده لاستیک ( براق شاین)";
+const TWIN_TIRE_SHINE = [199500, 370000];
+const TWIN_BLACK_SHINE = [241000, 345000];
+
+let _pIdx = null;
+function productIndexes(){
+  if(!_pIdx){
+    const full = PRODUCTS.map(p=>normName(p[1]));
+    _pIdx = { full, base: full.map(k=>k.replace(/\d+(سیسی|لیتر)$/,'')) };
+  }
+  return _pIdx;
+}
+function findByFullName(target){ return productIndexes().full.indexOf(normName(target)); }
+
+function matchProductIndex(name, unitPrice){
+  const raw = liteKey(name);
+  if(raw === liteKey(TWIN_NAME)){
+    if(TWIN_TIRE_SHINE.includes(unitPrice)) return findByFullName("واکس براق کننده الستیک (TIRE SHINE) - 500 سی‌سی");
+    if(TWIN_BLACK_SHINE.includes(unitPrice)) return findByFullName("بلک شاین - 500 سی‌سی");
+    return -1;
+  }
+  for(const k in INVOICE_ALIASES){
+    if(liteKey(k) === raw) return findByFullName(INVOICE_ALIASES[k]);
+  }
+  const key = normName(name), ix = productIndexes();
+  let c = [];
+  ix.base.forEach((b,i)=>{ if(b === key || ix.full[i] === key) c.push(i); });
+  if(c.length > 1){ const s = c.filter(i=>!/لیتر$/.test(ix.full[i])); if(s.length) c = s; }
+  return c.length ? c[0] : -1;
+}
+
+function importInvoiceFromHash(){
+  const m = location.hash.match(/^#inv=([\w\-]+)$/);
+  if(!m) return;
+  history.replaceState(null, '', location.pathname + location.search);   // تا با رفرش دوباره وارد نشه
+  let data;
+  try{
+    let b = m[1].replace(/-/g,'+').replace(/_/g,'/');
+    while(b.length % 4) b += '=';
+    data = JSON.parse(decodeURIComponent(escape(atob(b))));
+  }catch(e){ alert('اطلاعات فاکتور خوانده نشد؛ دوباره از صفحه‌ی صدور فاکتور بفرست.'); return; }
+  if(!data || !Array.isArray(data.items) || !data.items.length) return;
+
+  const discount = Math.max(0, Number(data.discount)||0);
+  const subtotal = data.items.reduce((sum,it)=> sum + (Number(it.q)||0)*(Number(it.p)||0), 0);
+  const factor = (discount > 0 && subtotal > 0) ? Math.max(0, (subtotal - discount)/subtotal) : 1;
+  const owner = data.owner === 'maryam' ? 'maryam' : 'ali';
+
+  let unmatched = 0;
+  const incoming = data.items.slice(0, 200).map(it=>{
+    const name = String(it.n||'').slice(0, 200);
+    const qty = Math.max(0, Number(it.q)||0);
+    const price = Math.max(0, Number(it.p)||0);
+    const idx = matchProductIndex(name, price);
+    if(idx < 0) unmatched++;
+    const row = {
+      id: nextId++,
+      productIndex: idx,
+      owner: owner,
+      qty: qty,
+      salePrice: Math.round(price * factor),
+      purchasePrice: idx >= 0 ? (Number(getBuyPrice(idx)) || 0) : 0,
+      supplier: ""
+    };
+    if(idx < 0) row.customName = name;
+    return row;
+  }).filter(r=> r.qty > 0);
+  if(!incoming.length) return;
+
+  let replace = true;
+  if(state.items.length){
+    replace = confirm('در دفتر از قبل ' + state.items.length + ' ردیف کالا هست.\n\nتأیید = جایگزین بشه (فقط این فاکتور بمونه)\nانصراف = به لیست فعلی اضافه بشه');
+  }
+  state.items = replace ? incoming : state.items.concat(incoming);
+  if(replace || !state.invoiceName){
+    state.invoiceName = data.customer ? ('فاکتور ' + data.customer) : String(data.number || '');
+    if(invoiceNameInput) invoiceNameInput.value = state.invoiceName;
+  }
+  saveState();
+  renderColumns();
+
+  const note = document.getElementById('importNote');
+  if(note){
+    let msg = '✅ ' + incoming.length + ' قلم از فاکتور' + (data.customer ? (' ' + data.customer) : '') + ' لود شد. حالا تامین‌کننده‌ها را انتخاب کنید.';
+    if(discount > 0) msg += ' (تخفیف ' + fmt(discount) + ' تومان به‌صورت نسبی روی قیمت فروش اقلام اعمال شد.)';
+    if(unmatched) msg += ' ⚠ ' + fmt(unmatched) + ' قلم در لیست خرید پیدا نشد؛ کالا را دستی انتخاب کنید.';
+    note.textContent = msg;
+    note.style.display = 'block';
+  }
+  const h = document.getElementById('listsHeading');
+  if(h) h.scrollIntoView({behavior:'smooth', block:'start'});
+}
+importInvoiceFromHash();
 
 function exportTableImage(ownerFilter){
   const items = Array.isArray(state.items) ? state.items : [];
@@ -718,7 +931,7 @@ function exportTableImage(ownerFilter){
   y+=headH;
 
   selectedItems.forEach((item,idx)=>{
-    const p=PRODUCTS[item.productIndex];
+    const p=[null, itemName(item)];
     const q=Number(item.qty)||0, buy=Number(item.purchasePrice)||0, sell=Number(item.salePrice)||0;
     const itemCapital=q*buy, itemProfit=q*(sell-buy);
     ctx.fillStyle=idx%2===0?"#ffffff":"#fcfbf8";
@@ -801,11 +1014,12 @@ function loadInvoiceFromFile(file){
       }
 
       const validItems = data.items.filter(item =>
-        item &&
-        Number.isInteger(item.productIndex) &&
-        item.productIndex >= 0 &&
-        item.productIndex < PRODUCTS.length
+        item && (
+          (Number.isInteger(item.productIndex) && item.productIndex >= 0 && item.productIndex < PRODUCTS.length) ||
+          (item.productIndex === -1 && item.customName)
+        )
       ).map(item => ({
+        customName: item.customName ? String(item.customName) : undefined,
         id: Number(item.id) || 0,
         productIndex: item.productIndex,
         owner: item.owner === "maryam" ? "maryam" : "ali",
@@ -818,6 +1032,7 @@ function loadInvoiceFromFile(file){
       state = {
         salePrices: data.salePrices || {},
         buyPrices: state.buyPrices || {},
+        suppliers: state.suppliers || [],
         items: validItems,
         invoiceName: String(data.invoiceName || ""),
         version: PRODUCTS_VERSION
@@ -854,7 +1069,7 @@ document.getElementById("invoiceFile").addEventListener("change", (e)=>{
 
   document.getElementById('resetAll').addEventListener('click', ()=>{
   if(confirm('همه‌ی کالاهای اضافه‌شده و قیمت‌های ویرایش‌شده پاک بشه؟')){
-    state = {salePrices:{}, buyPrices:{}, items:[], version: PRODUCTS_VERSION};
+    state = {salePrices:{}, buyPrices:{}, suppliers: state.suppliers || [], items:[], version: PRODUCTS_VERSION};
     saveState();
     activeCategory = 'همه';
     renderCategoryTabs();
