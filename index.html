@@ -129,7 +129,7 @@
   .account-item small{font-size:.68rem;color:var(--ink-soft);}
   .settlement{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);font-size:.78rem;font-weight:700;color:var(--green);}
 
-  .invoice-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-top:18px;}
+  .invoice-columns{display:flex;flex-direction:column;gap:16px;margin-top:18px;}
   .invoice-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
   .invoice-head{padding:11px 14px;font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;background:var(--accent-soft,#f6f3ec);color:var(--accent,var(--ink));}
   .invoice-table-wrap{overflow-x:auto;overflow-y:hidden;}
@@ -1052,6 +1052,19 @@ function exportTableImage(ownerFilter){
     if(fill){ctx.fillStyle=fill;ctx.fill();}
     if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}
   }
+  // اندازه‌ی فونت رو کم می‌کنه تا متن (مثلاً اعداد بزرگ) از عرض ستون بیرون نزنه
+  function fitSize(txt, maxWidth, size, weight){
+    font(size,weight);
+    const floor = Math.max(8, Math.round(size*0.55));
+    while(size>floor && ctx.measureText(String(txt)).width>maxWidth){ size--; font(size,weight); }
+    return size;
+  }
+  function rightFit(txt,xRight,y,maxWidth,size,weight="600",fill="#20262b"){
+    right(txt,xRight,y,fitSize(txt,maxWidth,size,weight),weight,fill);
+  }
+  function centerFit(txt,xCenter,y,maxWidth,size,weight="600",fill="#20262b"){
+    center(txt,xCenter,y,fitSize(txt,maxWidth,size,weight),weight,fill);
+  }
   function wrapRight(txt,x,y,maxWidth,size,weight="600",fill="#20262b"){
     ctx.save(); ctx.direction="rtl"; ctx.textAlign="right"; ctx.textBaseline="top";
     font(size,weight); ctx.fillStyle=fill;
@@ -1078,9 +1091,9 @@ function exportTableImage(ownerFilter){
   // مهم‌ترین بخش خروجی: در ابتدای فاکتور
   rounded(margin,y,W-2*margin,250,18,"#ffffff","#c9c2b7");
   right("مبلغ واریزی نهایی",W-margin-28,y+38,30,"900","#20262b");
-  right("سرمایه: "+faNum(capital)+" تومان",W-margin-28,y+88,24,"700","#555d66");
-  right("سود نهایی: "+faNum(finalShare)+" تومان",W-margin-28,y+130,24,"700","#555d66");
-  right("واریز نهایی: "+faNum(finalPayable)+" تومان",W-margin-28,y+194,38,"900","#20262b");
+  rightFit("سرمایه: "+faNum(capital)+" تومان",W-margin-28,y+88,W-2*margin-56,24,"700","#555d66");
+  rightFit("سود نهایی: "+faNum(finalShare)+" تومان",W-margin-28,y+130,W-2*margin-56,24,"700","#555d66");
+  rightFit("واریز نهایی: "+faNum(finalPayable)+" تومان",W-margin-28,y+194,W-2*margin-56,38,"900","#20262b");
   y+=280;
 
   // جدول کالاهای همان شخص
@@ -1102,10 +1115,10 @@ function exportTableImage(ownerFilter){
     ctx.fillStyle=idx%2===0?"#ffffff":"#fcfbf8";
     ctx.fillRect(margin,y,W-2*margin,rowH);
     wrapRight(p[1],colX[0]+colW[0]-10,y+13,colW[0]-18,18,"700");
-    center(faNum(q),colX[1]+colW[1]/2,y+rowH/2,21,"900");
-    right(faNum(sell),colX[2]+colW[2]-10,y+rowH/2,21,"900");
-    right(faNum(itemCapital),colX[3]+colW[3]-10,y+rowH/2,21,"900");
-    right(faNum(itemProfit),colX[4]+colW[4]-10,y+rowH/2,25,"900","#20262b");
+    centerFit(faNum(q),colX[1]+colW[1]/2,y+rowH/2,colW[1]-14,21,"900");
+    rightFit(faNum(sell),colX[2]+colW[2]-10,y+rowH/2,colW[2]-16,21,"900");
+    rightFit(faNum(itemCapital),colX[3]+colW[3]-10,y+rowH/2,colW[3]-16,21,"900");
+    rightFit(faNum(itemProfit),colX[4]+colW[4]-10,y+rowH/2,colW[4]-16,25,"900","#20262b");
     ctx.strokeStyle="#ebe7de"; ctx.lineWidth=1;
     ctx.strokeRect(margin,y,W-2*margin,rowH);
     y+=rowH;
@@ -1113,8 +1126,8 @@ function exportTableImage(ownerFilter){
 
   ctx.fillStyle="#f8f5ee"; ctx.fillRect(margin,y,W-2*margin,rowH);
   right("جمع",W-margin-14,y+rowH/2,21,"900");
-  right(faNum(capital)+" تومان",colX[3]+colW[3]-10,y+rowH/2,20,"900");
-  right(faNum(ownProfit)+" تومان",colX[4]+colW[4]-10,y+rowH/2,23,"900");
+  rightFit(faNum(capital)+" تومان",colX[3]+colW[3]-10,y+rowH/2,colW[3]-16,20,"900");
+  rightFit(faNum(ownProfit)+" تومان",colX[4]+colW[4]-10,y+rowH/2,colW[4]-16,23,"900");
   y+=rowH+28;
 
   // یک یادآوری کوچک در پایین
@@ -1169,17 +1182,21 @@ function exportCombinedImage(){
     const finalPayable = calc.capital + finalShare;
     return { owner:o, label: ownerName(o), items:list, calc, finalShare, finalPayable, accent: ownerAccent(o) };
   });
+  const totalCapitalAll = active.reduce((s,o)=>s+calcByOwner[o].capital,0);
+  const totalProfitAll = active.reduce((s,o)=>s+calcByOwner[o].ownProfit,0);
+  const totalRevenueAll = totalCapitalAll + totalProfitAll;
+
   const n = cols.length;
 
   // --- تنظیمات هندسی (عرض هر ستون بر اساس تعداد نفرات، تا ۴ ستون کنار هم جا بشه) ---
   const margin=36, colGap=26, contentW = n>=4 ? 470 : (n===3 ? 540 : 610);
-  const colW = n>=4 ? [160,34,64,64,72,72] : (n===3 ? [180,38,72,72,82,82] : [210,44,84,84,94,94]);
+  const colW = n>=4 ? [140,32,62,64,82,90] : (n===3 ? [160,36,70,72,92,100] : [190,42,82,84,100,112]);
   const nameFontSize = n>=4 ? 13 : (n===3 ? 14 : 15);
   const nameLineH = n>=4 ? 17 : (n===3 ? 18 : 20);
   const rowVPad=18, minRowH = n>=4 ? 44 : 50;
   const headH = n>=4 ? 40 : 46, ownerLabelH=58, summaryH = n>=4 ? 156 : 172, footerRowH = n>=4 ? 48 : 54;
   const gapAfterSummary=12, gapAfterHeader=6;
-  const titleH=118, bottomMargin=40;
+  const titleH=156, bottomMargin=40;
   const W = margin*2 + contentW*n + colGap*(n-1);
 
   const mctx = document.createElement("canvas").getContext("2d");
@@ -1230,6 +1247,19 @@ function exportCombinedImage(){
     ctx.save(); ctx.direction="rtl"; ctx.textAlign="center"; ctx.textBaseline="middle";
     font(size,weight); ctx.fillStyle=fill; ctx.fillText(String(txt),x,y); ctx.restore();
   }
+  // اندازه‌ی فونت رو کم می‌کنه تا متن (مثلاً اعداد بزرگ) از عرض ستون بیرون نزنه
+  function fitSize(txt, maxWidth, size, weight){
+    font(size,weight);
+    const floor = Math.max(8, Math.round(size*0.55));
+    while(size>floor && ctx.measureText(String(txt)).width>maxWidth){ size--; font(size,weight); }
+    return size;
+  }
+  function rightFit(txt,xRight,y,maxWidth,size,weight="600",fill="#20262b"){
+    right(txt,xRight,y,fitSize(txt,maxWidth,size,weight),weight,fill);
+  }
+  function centerFit(txt,xCenter,y,maxWidth,size,weight="600",fill="#20262b"){
+    center(txt,xCenter,y,fitSize(txt,maxWidth,size,weight),weight,fill);
+  }
   function rounded(x,y,w,h,r,fill,stroke){
     ctx.beginPath(); ctx.roundRect(x,y,w,h,r);
     if(fill){ctx.fillStyle=fill;ctx.fill();}
@@ -1243,6 +1273,7 @@ function exportCombinedImage(){
     ? ("سود شرکا: "+faNum(pooledProfit)+" تومان   |   سهم هر شریک: "+faNum(eachShare)+" تومان")
     : "فعلاً هیچ دو نفری با هم شراکتی نیستند — سود مال خود هرکس";
   center((invoiceName?("نام فاکتور: "+invoiceName+"   |   "):"")+modeTxt,W/2,y+62,18,"700","#555d66");
+  centerFit("جمع کل فاکتور — سرمایه: "+faNum(totalCapitalAll)+" تومان   |   سود: "+faNum(totalProfitAll)+" تومان   |   فروش کل: "+faNum(totalRevenueAll)+" تومان",W/2,y+96,W-2*margin,18,"800","#20262b");
   y+=titleH;
 
   // ستون سمت راست = نفر اول، به ترتیب به سمت چپ ادامه پیدا می‌کنه
@@ -1258,10 +1289,10 @@ function exportCombinedImage(){
     cy+=ownerLabelH;
 
     rounded(x,cy,contentW,summaryH,15,"#ffffff","#c9c2b7");
-    right("سرمایه: "+faNum(calc.capital)+" تومان",x+contentW-20,cy+36,17,"700","#555d66");
-    right((isPartner(owner)?"سود نهایی (سهم شراکتی): ":"سود نهایی (سود خودش): ")+faNum(finalShare)+" تومان",x+contentW-20,cy+74,17,"700","#555d66");
+    rightFit("سرمایه: "+faNum(calc.capital)+" تومان",x+contentW-20,cy+36,contentW-40,17,"700","#555d66");
+    rightFit((isPartner(owner)?"سود نهایی (سهم شراکتی): ":"سود نهایی (سود خودش): ")+faNum(finalShare)+" تومان",x+contentW-20,cy+74,contentW-40,17,"700","#555d66");
     right("مبلغ واریزی نهایی",x+contentW-20,cy+108,18,"900","#20262b");
-    right(faNum(finalPayable)+" تومان",x+contentW-20,cy+140,27,"900",accent.main);
+    rightFit(faNum(finalPayable)+" تومان",x+contentW-20,cy+140,contentW-40,27,"900",accent.main);
     cy+=summaryH+gapAfterSummary;
 
     const tColX=[]; let cursor=x+contentW;
@@ -1283,11 +1314,11 @@ function exportCombinedImage(){
       let ny=cy+(rh-row.nameLines.length*nameLineH)/2;
       row.nameLines.forEach(line=>{ ctx.fillText(line,nameX,ny); ny+=nameLineH; });
       ctx.restore();
-      center(faNum(q),tColX[1]+colW[1]/2,cy+rh/2,14,"900");
-      right(faNum(buy),tColX[2]+colW[2]-7,cy+rh/2,12,"700","#7a7468");
-      right(faNum(sell),tColX[3]+colW[3]-7,cy+rh/2,13,"800");
-      right(faNum(itemCapital),tColX[4]+colW[4]-7,cy+rh/2,13,"800");
-      right(faNum(itemProfit),tColX[5]+colW[5]-7,cy+rh/2,15,"900",accent.main);
+      centerFit(faNum(q),tColX[1]+colW[1]/2,cy+rh/2,colW[1]-6,14,"900");
+      rightFit(faNum(buy),tColX[2]+colW[2]-7,cy+rh/2,colW[2]-12,12,"700","#7a7468");
+      rightFit(faNum(sell),tColX[3]+colW[3]-7,cy+rh/2,colW[3]-12,13,"800");
+      rightFit(faNum(itemCapital),tColX[4]+colW[4]-7,cy+rh/2,colW[4]-12,13,"800");
+      rightFit(faNum(itemProfit),tColX[5]+colW[5]-7,cy+rh/2,colW[5]-12,15,"900",accent.main);
       ctx.strokeStyle="#ebe7de"; ctx.lineWidth=1; ctx.strokeRect(x,cy,contentW,rh);
       cy+=rh;
     });
@@ -1300,9 +1331,9 @@ function exportCombinedImage(){
 
     ctx.fillStyle=accent.soft; ctx.fillRect(x,cy,contentW,footerRowH);
     right("جمع",x+contentW-13,cy+footerRowH/2,16,"900");
-    center(faNum(calc.totalQty),tColX[1]+colW[1]/2,cy+footerRowH/2,14,"900");
-    right(faNum(calc.capital)+" ت",tColX[4]+colW[4]-7,cy+footerRowH/2,14,"900");
-    right(faNum(calc.ownProfit)+" ت",tColX[5]+colW[5]-7,cy+footerRowH/2,16,"900",accent.main);
+    centerFit(faNum(calc.totalQty),tColX[1]+colW[1]/2,cy+footerRowH/2,colW[1]-6,14,"900");
+    rightFit(faNum(calc.capital),tColX[4]+colW[4]-7,cy+footerRowH/2,colW[4]-12,14,"900");
+    rightFit(faNum(calc.ownProfit),tColX[5]+colW[5]-7,cy+footerRowH/2,colW[5]-12,16,"900",accent.main);
     ctx.strokeStyle="#ddd8cc"; ctx.lineWidth=1.5; ctx.strokeRect(x,cy,contentW,footerRowH);
   }
 
