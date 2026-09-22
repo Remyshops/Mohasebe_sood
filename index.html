@@ -28,25 +28,54 @@
     line-height:1.6;
     padding:20px 14px 50px;
   }
-  .wrap{max-width:1100px;margin:0 auto;}
+  .wrap{max-width:1200px;margin:0 auto;}
   h1{font-size:1.35rem;font-weight:800;margin:0 0 4px;}
   .sub{color:var(--ink-soft);font-size:.85rem;margin:0 0 18px;}
 
+  .settings-box{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin:12px 0;display:flex;flex-wrap:wrap;gap:16px;align-items:center;
+  }
+  .settings-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .settings-row > label.row-label{font-size:.8rem;font-weight:700;white-space:nowrap;}
+  .owner-count-tabs{display:flex;gap:6px;}
+  .owner-count-tabs button{
+    border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    width:34px;height:34px;border-radius:8px;font-family:inherit;font-size:.85rem;
+    font-weight:700;cursor:pointer;
+  }
+  .owner-count-tabs button:hover{border-color:var(--ali);color:var(--ali);}
+  .owner-count-tabs button.active{background:var(--ali);border-color:var(--ali);color:#fff;}
+  .switch-label{display:flex;align-items:center;gap:8px;font-size:.83rem;cursor:pointer;user-select:none;font-weight:600;}
+  .switch-label input{width:38px;height:20px;accent-color:var(--green);cursor:pointer;}
+  .partnership-hint{font-size:.72rem;color:var(--ink-soft);flex-basis:100%;}
+
+  .owner-names-box{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin:12px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;
+  }
+  .owner-names-box .field{display:flex;flex-direction:column;gap:4px;min-width:0;}
+  .owner-names-box label{font-size:.78rem;font-weight:700;}
+  .owner-names-box input{
+    border:1px solid #d9c98f;background:#fffdf7;border-radius:7px;padding:7px 9px;
+    font-family:inherit;font-size:.85rem;color:var(--ink);width:100%;
+  }
+  .owner-names-box input:focus{outline:2px solid #c8862f;outline-offset:1px;}
+  .owner-names-box .hint{grid-column:1/-1;font-size:.72rem;color:var(--ink-soft);}
+  .owner-partner-check{display:flex;align-items:center;gap:6px;font-size:.74rem;font-weight:600;color:var(--ink-soft);margin-top:2px;cursor:pointer;user-select:none;}
+  .owner-partner-check input{width:16px;height:16px;accent-color:var(--green);cursor:pointer;}
+
   .stats{
     display:grid;
-    grid-template-columns:1fr 1fr 1fr;
+    grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
     gap:12px;
     margin-bottom:22px;
   }
-  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
-  .stat.ali{border-inline-start:5px solid var(--ali);}
-  .stat.maryam{border-inline-start:5px solid var(--maryam);}
-  .stat.profit{border-inline-start:5px solid var(--green);}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;border-inline-start:5px solid var(--accent,var(--line));}
+  .stat.profit{border-inline-start-color:var(--green);}
   .stat .lbl{font-size:.78rem;color:var(--ink-soft);margin-bottom:6px;}
-  .stat .num{font-size:1.2rem;font-weight:800;font-variant-numeric:tabular-nums;}
+  .stat .num{font-size:1.2rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent,var(--ink));}
   .stat.profit .num{color:var(--green);}
-  .stat.ali .num{color:var(--ali);}
-  .stat.maryam .num{color:var(--maryam);}
   .stat .foot{font-size:.72rem;color:var(--ink-soft);margin-top:4px;}
 
   h2{font-size:1.02rem;font-weight:700;margin:26px 0 10px;}
@@ -74,7 +103,11 @@
 
   .table-scroll{overflow-x:auto;}
 
-  .category-tabs{
+  .category-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
+  .cat-tab{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 13px;border-radius:20px;font-family:inherit;font-size:.82rem;cursor:pointer;white-space:nowrap;}
+  .cat-tab:hover{border-color:var(--ali);color:var(--ali);}
+  .cat-tab.active{background:var(--ali);border-color:var(--ali);color:#fff;font-weight:700;}
+
   .invoice-name-box{
     background:var(--panel);border:1px solid var(--line);border-radius:10px;
     padding:10px 12px;margin:12px 0;
@@ -86,49 +119,26 @@
     padding:7px 9px;font-family:inherit;font-size:.82rem;color:var(--ink);
   }
   .invoice-name-input:focus{outline:2px solid #c8862f;outline-offset:1px;}
-  @media(max-width:760px){
-    .invoice-name-box{align-items:stretch;flex-direction:column;}
-  }
-  .owner-names-box{
-    background:var(--panel);border:1px solid var(--line);border-radius:10px;
-    padding:12px 14px;margin:12px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;
-  }
-  .owner-names-box .field{display:flex;flex-direction:column;gap:4px;min-width:0;}
-  .owner-names-box label{font-size:.78rem;font-weight:700;}
-  .owner-names-box input{
-    border:1px solid #d9c98f;background:#fffdf7;border-radius:7px;padding:7px 9px;
-    font-family:inherit;font-size:.85rem;color:var(--ink);width:100%;
-  }
-  .owner-names-box input:focus{outline:2px solid #c8862f;outline-offset:1px;}
-  .owner-names-box .hint{grid-column:1/-1;font-size:.72rem;color:var(--ink-soft);}
-  @media(max-width:760px){
-    .owner-names-box{grid-template-columns:1fr;}
-  }
-display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
-  .cat-tab{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 13px;border-radius:20px;font-family:inherit;font-size:.82rem;cursor:pointer;white-space:nowrap;}
-  .cat-tab:hover{border-color:var(--ali);color:var(--ali);}
-  .cat-tab.active{background:var(--ali);border-color:var(--ali);color:#fff;font-weight:700;}
+
   .account-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0 18px;}
   .account-title{font-weight:800;font-size:.95rem;margin-bottom:10px;}
-  .account-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .account-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;}
   .account-item{border:1px solid #eee9df;background:#fbfaf7;border-radius:8px;padding:8px 10px;display:flex;align-items:baseline;gap:7px;min-width:0;}
   .account-item span{color:var(--ink-soft);font-size:.76rem;flex:1;}
   .account-item strong{font-size:.95rem;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .account-item small{font-size:.68rem;color:var(--ink-soft);}
   .settlement{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);font-size:.78rem;font-weight:700;color:var(--green);}
-  .invoice-columns{display:flex;flex-direction:column;gap:16px;margin-top:18px;}
-  .invoice-box{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
-  .invoice-head{padding:11px 14px;font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;}
-  .invoice-box.ali .invoice-head{background:var(--ali-soft);color:var(--ali);}
-  .invoice-box.maryam .invoice-head{background:var(--maryam-soft);color:var(--maryam);}
+
+  .invoice-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-top:18px;}
+  .invoice-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .invoice-head{padding:11px 14px;font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;background:var(--accent-soft,#f6f3ec);color:var(--accent,var(--ink));}
   .invoice-table-wrap{overflow-x:auto;overflow-y:hidden;}
   .invoice-table{width:100%;min-width:760px;border-collapse:collapse;font-size:.73rem;background:var(--panel);table-layout:fixed;}
   .invoice-table th{background:#f6f3ec;color:var(--ink-soft);font-weight:600;font-size:.68rem;padding:7px 4px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap;}
   .invoice-table th:first-child{text-align:right;}
-  .invoice-table th:nth-child(5){white-space:nowrap;}
   .invoice-table td{padding:6px 4px;border-bottom:1px solid #f1eee4;text-align:center;vertical-align:middle;white-space:nowrap;}
   .invoice-table td.product-name{text-align:right;white-space:normal;min-width:0;max-width:none;overflow-wrap:anywhere;}
-  .invoice-table th:nth-child(5){font-weight:800;font-size:.78rem;}
+  .invoice-table th:nth-child(5){font-weight:800;font-size:.78rem;white-space:nowrap;}
   .invoice-table td.profit-cell{font-weight:900;color:var(--green);white-space:nowrap;font-size:.9rem;background:#f3faf5;}
   .invoice-table th:nth-child(1),.invoice-table td:nth-child(1){width:40%;}
   .invoice-table th:nth-child(2),.invoice-table td:nth-child(2){width:9%;}
@@ -136,9 +146,6 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
   .invoice-table th:nth-child(4),.invoice-table td:nth-child(4){width:20%;}
   .invoice-table th:nth-child(5),.invoice-table td:nth-child(5){width:11%;}
   .invoice-table th:nth-child(6),.invoice-table td:nth-child(6){width:2%;}
-
-
-
 
   .invoice-table tfoot td{border-bottom:none;background:#fbfaf7;font-weight:700;}
   .invoice-edit{width:100%;min-width:0;max-width:100%;border:1px solid #d9c98f;background:#fffdf7;border-radius:6px;padding:4px 3px;font-family:inherit;font-size:.72rem;color:var(--ink);text-align:center;}
@@ -153,33 +160,16 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
 
   .remove-btn{border:none;background:none;color:#a6423a;cursor:pointer;font-size:1rem;padding:0 4px;}
 
-
-  .columns{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;}
-  .col-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
-  .col-box .head{padding:11px 14px;font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;}
-  .col-box.ali .head{background:var(--ali-soft);color:var(--ali);}
-  .col-box.maryam .head{background:var(--maryam-soft);color:var(--maryam);}
-  .col-box .body{padding:6px 0;}
-  .item-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #f1eee4;font-size:.83rem;}
-  .item-row:last-child{border-bottom:none;}
-  .item-row .iname{flex:1;}
-  .item-row .imeta{color:var(--ink-soft);font-size:.75rem;}
-  .item-row .iprofit{font-weight:700;color:var(--green);white-space:nowrap;}
-  .item-row .rm{border:none;background:none;color:#a6423a;cursor:pointer;font-size:1rem;padding:0 4px;}
   .empty-msg{padding:16px 14px;color:var(--ink-soft);font-size:.82rem;}
-  .col-box .subtotal{padding:10px 14px;border-top:1px solid var(--line);background:#fbfaf7;font-size:.85rem;display:flex;justify-content:space-between;font-weight:700;}
 
   .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;font-family:inherit;}
   .btn:hover{border-color:var(--ali);color:var(--ali);}
   .toolbar{display:flex;justify-content:flex-end;margin:14px 0;}
 
   @media(max-width:760px){
-    .stats{grid-template-columns:1fr;}
-    .columns{grid-template-columns:1fr;}
-    .invoice-columns{grid-template-columns:1fr;}
     .invoice-table{font-size:.72rem;}
-    .account-grid{grid-template-columns:1fr;}
     table{font-size:.85rem;}
+    .settings-box{flex-direction:column;align-items:stretch;}
   }
 
   /* --- قیمت خرید زیر نام هر کالا --- */
@@ -195,49 +185,21 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
   <h1>دفتر مشترک محصولات غیاث</h1>
   <p class="sub" id="subTitle">سید علی محمد مدرسی و مریم مدرسی — لیست قیمت مرداد ۱۴۰۵</p>
 
-  <div class="owner-names-box">
-    <div class="field">
-      <label for="ownerNameAli">نام نفر اول (ستون اول)</label>
-      <input id="ownerNameAli" type="text" placeholder="مثلاً: سید علی محمد مدرسی">
+  <div class="settings-box">
+    <div class="settings-row">
+      <label class="row-label">تعداد نفرات شریک:</label>
+      <div class="owner-count-tabs" id="ownerCountTabs"></div>
     </div>
-    <div class="field">
-      <label for="ownerNameMaryam">نام نفر دوم (ستون دوم)</label>
-      <input id="ownerNameMaryam" type="text" placeholder="مثلاً: مریم مدرسی">
-    </div>
-    <div class="hint">این اسم‌ها فقط روی همین دستگاه/مرورگر ذخیره می‌شن؛ هر کسی از این صفحه استفاده کنه می‌تونه اسم خودش رو اینجا بذاره.</div>
+    <div class="partnership-hint" id="partnershipHint"></div>
   </div>
 
-  <div class="stats">
-    <div class="stat ali">
-      <div class="lbl" id="lblCapAli">جمع سرمایه علی</div>
-      <div class="num" id="capAli">۰</div>
-      <div class="foot">تومان</div>
-    </div>
-    <div class="stat maryam">
-      <div class="lbl" id="lblCapMaryam">جمع سرمایه مریم</div>
-      <div class="num" id="capMaryam">۰</div>
-      <div class="foot">تومان</div>
-    </div>
-    <div class="stat profit">
-      <div class="lbl">سود کل شراکت</div>
-      <div class="num" id="totalProfit">۰</div>
-      <div class="foot">سهم هر نفر: <span id="halfProfit">۰</span> تومان</div>
-    </div>
-  </div>
+  <div class="owner-names-box" id="ownerNamesBox"></div>
+
+  <div class="stats" id="statsBox"></div>
 
   <div class="account-box">
-    <div class="account-title">خلاصه سرمایه و سود شراکتی</div>
-    <div class="account-grid">
-      <div class="account-item"><span id="lblAliCapital">سرمایه علی</span><strong id="accountAliCapital">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span id="lblAliOwnProfit">سود فروش‌های علی</span><strong id="aliOwnProfit">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span id="lblAliShare">سهم نهایی علی</span><strong id="aliShare">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span id="lblMaryamCapital">سرمایه مریم</span><strong id="accountMaryamCapital">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span id="lblMaryamOwnProfit">سود فروش‌های مریم</span><strong id="maryamOwnProfit">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span id="lblMaryamShare">سهم نهایی مریم</span><strong id="maryamShare">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span>جمع سرمایه</span><strong id="totalCapital">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span>جمع سود کل</span><strong id="accountTotalProfit">۰</strong><small>تومان</small></div>
-      <div class="account-item"><span>سود هر نفر (۵۰٪)</span><strong id="accountHalfProfit">۰</strong><small>تومان</small></div>
-    </div>
+    <div class="account-title">خلاصه سرمایه و سود</div>
+    <div class="account-grid" id="accountGrid"></div>
     <div id="profitSettlement" class="settlement"></div>
   </div>
 
@@ -247,7 +209,7 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
   </div>
 
   <h2>۱. لیست کالاها و قیمت‌ها</h2>
-  <div class="note" id="catalogNote">قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون سید علی محمد مدرسی یا مریم مدرسی اضافه‌ش کنید.</div>
+  <div class="note" id="catalogNote">قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون یکی از نفرات اضافه‌ش کنید.</div>
 
   <div id="categoryTabs" class="category-tabs"></div>
   <div class="table-scroll">
@@ -264,48 +226,17 @@ display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;}
 
   <h2 id="listsHeading">۲. کالاهای هرکدام</h2>
   <div id="importNote" class="note" style="display:none;"></div>
-  <div class="invoice-columns">
-    <div class="invoice-box ali">
-      <div class="invoice-head"><span id="aliHeadName">سید علی محمد مدرسی</span><span id="aliCount">۰ قلم</span></div>
-      <div class="invoice-table-wrap">
-        <table class="invoice-table">
-          <thead><tr>
-            <th>کالا</th><th>تعداد</th><th>قیمت فروش</th><th>مال کی؟</th><th>سود</th><th></th>
-          </tr></thead>
-          <tbody id="aliList"></tbody>
-          <tfoot><tr>
-            <td colspan="2">جمع</td><td id="aliSubtotal">۰ تومان</td><td>—</td><td id="aliInvoiceProfit">۰ تومان</td><td></td>
-          </tr></tfoot>
-        </table>
-      </div>
-    </div>
-
-    <div class="invoice-box maryam">
-      <div class="invoice-head"><span id="maryamHeadName">مریم مدرسی</span><span id="maryamCount">۰ قلم</span></div>
-      <div class="invoice-table-wrap">
-        <table class="invoice-table">
-          <thead><tr>
-            <th>کالا</th><th>تعداد</th><th>قیمت فروش</th><th>مال کی؟</th><th>سود</th><th></th>
-          </tr></thead>
-          <tbody id="maryamList"></tbody>
-          <tfoot><tr>
-            <td colspan="2">جمع</td><td id="maryamSubtotal">۰ تومان</td><td>—</td><td id="maryamInvoiceProfit">۰ تومان</td><td></td>
-          </tr></tfoot>
-        </table>
-      </div>
-    </div>
-  </div>
+  <div class="invoice-columns" id="invoiceColumns"></div>
 
   <div class="toolbar" style="gap:8px;flex-wrap:wrap;">
     <button class="btn" id="saveInvoice">💾 ذخیره فاکتور</button>
     <button class="btn" id="loadInvoice">📂 لود فاکتور</button>
-    <button class="btn" id="exportMaryam">خروجی مریم</button>
-    <button class="btn" id="exportAli">خروجی علی</button>
-    <button class="btn" id="exportBoth" style="border-color:var(--green);color:var(--green);font-weight:700;">📊 خروجی سود هر دو نفر (کنار هم)</button>
+    <div id="exportOwnerBtns" style="display:contents;"></div>
+    <button class="btn" id="exportAll" style="border-color:var(--green);color:var(--green);font-weight:700;">📊 خروجی سود همه (کنار هم)</button>
     <button class="btn" id="resetAll">پاک کردن همه چیز</button>
     <input id="invoiceFile" type="file" accept=".json,application/json" style="display:none">
   </div>
-  <div style="font-size:.66rem;color:#b3ac9d;text-align:left;margin-top:2px;">نسخه ابزار: 2026-09-20-r3 (اگه این عدد رو تو صفحه‌تون نمی‌بینید، فایل قدیمیه)</div>
+  <div style="font-size:.66rem;color:#b3ac9d;text-align:left;margin-top:2px;">نسخه ابزار: 2026-09-22-r5 — تیک «سود شراکتی» جدا برای هر نفر (اگه این عدد رو تو صفحه‌تون نمی‌بینید، فایل قدیمیه)</div>
 </div>
 
 <script>
@@ -328,7 +259,7 @@ const PRODUCTS = [
  ["507","موتور شوی - 500 سی‌سی",136500,186500,""],
  ["508","رینگ شوی - 500 سی‌سی",119000,169000,""],
  ["509","پاک کننده چندمنظوره خودرویی - 500 سی‌سی",159500,209500,""],
- ["510","شیشه شوی - 500 سی‌سی",114000,164000,""],
+ ["510","شیشه شوی - 500 سی‌سی",110000,164000,""],
  ["511","شامپو بدنه - 500 سی‌سی",170000,220000,""],
  ["512","براق کننده بدنه - 500 سی‌سی",132000,182000,""],
  ["513","براق کننده چراغ - 500 سی‌سی",132000,182000,""],
@@ -384,6 +315,17 @@ const PRODUCTS = [
  ["-","نانو چرم کیف و کفش - با جعبه",177000,227000,"⚠ اعداد این ردیف در فایل اصلی نامرتب چاپ شده بود؛ لطفاً بررسی کنید"],
 ];
 
+const OWNERS = ['ali','maryam','p3','p4'];
+const OWNER_LABELS_FA = {2:'۲',3:'۳',4:'۴'};
+const OWNER_POS_FA = ['اول','دوم','سوم','چهارم'];
+const OWNER_COLORS = {
+  ali:   {main:'#0f3d3e', soft:'#e4efee'},
+  maryam:{main:'#a6612e', soft:'#faeee0'},
+  p3:    {main:'#2f5fa6', soft:'#e7eefb'},
+  p4:    {main:'#7a3fa0', soft:'#f2e9f7'}
+};
+const DEFAULT_OWNER_NAMES = { ali: "سید علی محمد مدرسی", maryam: "مریم مدرسی", p3: "افسر خانم", p4: "نازنین" };
+
 const STORE_KEY = "ghiyas_ledger_addflow_v1";
 const PRODUCTS_VERSION = "2026-09-11-4";
 
@@ -397,36 +339,208 @@ if(!state.salePrices) state.salePrices = {};
 if(!state.buyPrices) state.buyPrices = {};
 if(!state.items) state.items = [];
 if(!state.ownerNames || typeof state.ownerNames !== "object") state.ownerNames = {};
+if(![2,3,4].includes(state.ownerCount)) state.ownerCount = 2;
+if(!state.partnerFlags || typeof state.partnerFlags !== "object"){
+  // سازگاری با فایل‌های قدیمی که فقط یک کلید «partnership» یکسان برای همه داشتند
+  const legacy = typeof state.partnership === "boolean" ? state.partnership : true;
+  state.partnerFlags = {};
+  OWNERS.forEach(o=>{ state.partnerFlags[o] = legacy; });
+}
+OWNERS.forEach(o=>{ if(typeof state.partnerFlags[o] !== "boolean") state.partnerFlags[o] = true; });
 
-const DEFAULT_OWNER_NAMES = { ali: "سید علی محمد مدرسی", maryam: "مریم مدرسی" };
+function activeOwners(){ return OWNERS.slice(0, state.ownerCount); }
+function isPartner(key){ return !!state.partnerFlags[key]; }
+function ownerAccent(key){ return OWNER_COLORS[key] || {main:'#333333', soft:'#eeeeee'}; }
+
 function ownerName(key){
   const v = state.ownerNames && state.ownerNames[key];
   return (v && String(v).trim()) ? String(v).trim() : DEFAULT_OWNER_NAMES[key];
 }
+
+function renderOwnerCountTabs(){
+  const box = document.getElementById('ownerCountTabs');
+  if(!box) return;
+  box.innerHTML = [2,3,4].map(n=>
+    `<button type="button" class="${n===state.ownerCount?'active':''}" data-n="${n}">${OWNER_LABELS_FA[n]}</button>`
+  ).join('');
+  box.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const n = parseInt(btn.dataset.n,10);
+      if(n === state.ownerCount) return;
+      changeOwnerCount(n);
+    });
+  });
+}
+
+function changeOwnerCount(n){
+  const oldCount = state.ownerCount;
+  const oldActive = activeOwners();
+  state.ownerCount = n;
+  const newActive = activeOwners();
+  const removed = oldActive.filter(o=>!newActive.includes(o));
+  if(removed.length){
+    const affected = state.items.filter(it=>removed.includes(it.owner));
+    if(affected.length){
+      const fallback = newActive[newActive.length-1];
+      const ok = confirm(`با کاهش تعداد نفرات، ${affected.length} قلم کالای متعلق به نفرات حذف‌شده به «${ownerName(fallback)}» منتقل می‌شود. ادامه می‌دهید؟`);
+      if(!ok){ state.ownerCount = oldCount; renderOwnerCountTabs(); return; }
+      affected.forEach(it=>{ it.owner = fallback; });
+    }
+  }
+  saveState();
+  fullRebuild();
+}
+
+function updatePartnershipHint(){
+  const hint = document.getElementById('partnershipHint');
+  if(!hint) return;
+  const active = activeOwners();
+  const partners = active.filter(o=>isPartner(o));
+  const solo = active.filter(o=>!isPartner(o));
+  const partnerNames = partners.map(ownerName).join('، ');
+  const soloNames = solo.map(ownerName).join('، ');
+
+  if(partners.length >= 2 && solo.length === 0){
+    hint.textContent = 'سود کل بین ' + partnerNames + ' به‌طور مساوی تقسیم می‌شود.';
+  } else if(partners.length >= 2 && solo.length > 0){
+    hint.textContent = 'سود ' + partnerNames + ' با هم شراکتی و مساوی تقسیم می‌شود؛ سود ' + soloNames + ' مال خودشان می‌ماند.';
+  } else if(partners.length <= 1 && solo.length > 0){
+    hint.textContent = 'هیچ‌کس تیک «سود شراکتی» را نزده (یا فقط یک نفر)؛ سود هرکس مال خودش می‌ماند.';
+  } else {
+    hint.textContent = '';
+  }
+}
+
+function buildOwnerNamesSkeleton(){
+  const box = document.getElementById('ownerNamesBox');
+  if(!box) return;
+  const active = activeOwners();
+  box.innerHTML = active.map((o,idx)=>`
+    <div class="field">
+      <label for="ownerName_${o}">نام نفر ${OWNER_POS_FA[idx]}</label>
+      <input id="ownerName_${o}" type="text" placeholder="نام نفر ${OWNER_POS_FA[idx]}">
+      <label class="owner-partner-check" for="ownerPartner_${o}">
+        <input type="checkbox" id="ownerPartner_${o}">
+        <span>سود شراکتی (تیک بزنید تا سودش با بقیه‌ی تیک‌خورده‌ها تقسیم شود)</span>
+      </label>
+    </div>`
+  ).join('') + `<div class="hint">این اسم‌ها و تیک‌ها فقط روی همین دستگاه/مرورگر ذخیره می‌شن. اگر تیک نزنید، سود همون نفر فقط مال خودش می‌مونه و با بقیه تقسیم نمی‌شه.</div>`;
+
+  active.forEach(o=>{
+    const input = document.getElementById('ownerName_'+o);
+    if(input){
+      input.value = ownerName(o);
+      input.addEventListener('input', ()=>{
+        state.ownerNames[o] = input.value;
+        saveState();
+        updateOwnerNameDisplays();
+        buildCatalog();
+        renderColumns();
+      });
+    }
+    const check = document.getElementById('ownerPartner_'+o);
+    if(check){
+      check.checked = isPartner(o);
+      check.addEventListener('change', ()=>{
+        state.partnerFlags[o] = check.checked;
+        saveState();
+        updatePartnershipHint();
+        renderColumns();
+      });
+    }
+  });
+}
+
+function buildStatsSkeleton(){
+  const box = document.getElementById('statsBox');
+  if(!box) return;
+  const active = activeOwners();
+  box.innerHTML = active.map(o=>{
+    const c = ownerAccent(o);
+    return `<div class="stat" style="--accent:${c.main}">
+      <div class="lbl" id="lblCap_${o}">جمع سرمایه</div>
+      <div class="num" id="cap_${o}">۰</div>
+      <div class="foot">تومان</div>
+    </div>`;
+  }).join('') + `
+    <div class="stat profit">
+      <div class="lbl">سود کل</div>
+      <div class="num" id="totalProfit">۰</div>
+      <div class="foot" id="profitFoot">سهم هر نفر: <span id="halfProfit">۰</span> تومان</div>
+    </div>`;
+}
+
+function buildAccountSkeleton(){
+  const box = document.getElementById('accountGrid');
+  if(!box) return;
+  const active = activeOwners();
+  box.innerHTML = active.map(o=>`
+    <div class="account-item"><span id="lblAccCapital_${o}">سرمایه</span><strong id="accCapital_${o}">۰</strong><small>تومان</small></div>
+    <div class="account-item"><span id="lblAccOwnProfit_${o}">سود فروش‌ها</span><strong id="accOwnProfit_${o}">۰</strong><small>تومان</small></div>
+    <div class="account-item"><span id="lblAccShare_${o}">سهم نهایی</span><strong id="accShare_${o}">۰</strong><small>تومان</small></div>
+  `).join('') + `
+    <div class="account-item"><span>جمع سرمایه</span><strong id="totalCapital">۰</strong><small>تومان</small></div>
+    <div class="account-item"><span>جمع سود کل</span><strong id="accountTotalProfit">۰</strong><small>تومان</small></div>
+    <div class="account-item"><span id="lblAccountHalf">سود هر نفر</span><strong id="accountHalfProfit">۰</strong><small>تومان</small></div>
+  `;
+}
+
+function buildInvoiceColumnsSkeleton(){
+  const box = document.getElementById('invoiceColumns');
+  if(!box) return;
+  const active = activeOwners();
+  box.innerHTML = active.map(o=>{
+    const c = ownerAccent(o);
+    return `<div class="invoice-box" style="--accent:${c.main};--accent-soft:${c.soft}">
+      <div class="invoice-head"><span id="head_${o}">نفر</span><span id="count_${o}">۰ قلم</span></div>
+      <div class="invoice-table-wrap">
+        <table class="invoice-table">
+          <thead><tr>
+            <th>کالا</th><th>تعداد</th><th>قیمت فروش</th><th>مال کی؟</th><th>سود</th><th></th>
+          </tr></thead>
+          <tbody id="list_${o}"></tbody>
+          <tfoot><tr>
+            <td colspan="2">جمع</td><td id="sub_${o}">۰ تومان</td><td>—</td><td id="profit_${o}">۰ تومان</td><td></td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildExportButtons(){
+  const box = document.getElementById('exportOwnerBtns');
+  if(!box) return;
+  const active = activeOwners();
+  box.innerHTML = active.map(o=>`<button class="btn" id="exportBtn_${o}">خروجی</button>`).join('');
+  active.forEach(o=>{
+    const btn = document.getElementById('exportBtn_'+o);
+    if(btn) btn.addEventListener('click', ()=>exportTableImage(o));
+  });
+}
+
 function updateOwnerNameDisplays(){
-  const ali = ownerName('ali'), maryam = ownerName('maryam');
+  const active = activeOwners();
+  const names = active.map(o=>ownerName(o));
   const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
 
-  setText('subTitle', ali + " و " + maryam + " — لیست قیمت مرداد ۱۴۰۵");
-  setText('catalogNote', "قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون " + ali + " یا " + maryam + " اضافه‌ش کنید.");
-  setText('aliHeadName', ali);
-  setText('maryamHeadName', maryam);
-  setText('lblCapAli', "جمع سرمایه " + ali);
-  setText('lblCapMaryam', "جمع سرمایه " + maryam);
-  setText('lblAliCapital', "سرمایه " + ali);
-  setText('lblAliOwnProfit', "سود فروش‌های " + ali);
-  setText('lblAliShare', "سهم نهایی " + ali);
-  setText('lblMaryamCapital', "سرمایه " + maryam);
-  setText('lblMaryamOwnProfit', "سود فروش‌های " + maryam);
-  setText('lblMaryamShare', "سهم نهایی " + maryam);
-  setText('exportAli', "خروجی " + ali);
-  setText('exportMaryam', "خروجی " + maryam);
+  setText('subTitle', names.join('، ') + " — لیست قیمت مرداد ۱۴۰۵");
+  setText('catalogNote', "قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون یکی از نفرات اضافه‌ش کنید.");
 
-  const aliInput = document.getElementById('ownerNameAli');
-  const maryamInput = document.getElementById('ownerNameMaryam');
-  if(aliInput && document.activeElement !== aliInput) aliInput.value = ali;
-  if(maryamInput && document.activeElement !== maryamInput) maryamInput.value = maryam;
+  active.forEach(o=>{
+    setText('head_'+o, ownerName(o));
+    setText('lblCap_'+o, "جمع سرمایه " + ownerName(o));
+    setText('lblAccCapital_'+o, "سرمایه " + ownerName(o));
+    setText('lblAccOwnProfit_'+o, "سود فروش‌های " + ownerName(o));
+    setText('lblAccShare_'+o, "سهم نهایی " + ownerName(o));
+    setText('exportBtn_'+o, "خروجی " + ownerName(o));
+    const input = document.getElementById('ownerName_'+o);
+    if(input && document.activeElement !== input) input.value = ownerName(o);
+  });
+
+  updatePartnershipHint();
 }
+
 if(state.version !== PRODUCTS_VERSION){
   // Product list/prices were updated in the file — drop any old manually-saved
   // sale-price overrides so the new built-in prices actually show up.
@@ -491,6 +605,7 @@ function renderCategoryTabs(){
 function buildCatalog(){
   const tbody = document.getElementById('catalogBody');
   tbody.innerHTML = "";
+  const active = activeOwners();
 
   PRODUCTS.forEach((p,i)=>{
     if(activeCategory !== "همه" && getCategory(p[1]) !== activeCategory) return;
@@ -507,8 +622,7 @@ function buildCatalog(){
       <td><input class="editable" type="number" min="0" data-role="qty" placeholder="0" style="max-width:60px"></td>
       <td>
         <select class="mini" data-role="owner">
-          <option value="ali">${esc(ownerName('ali'))}</option>
-          <option value="maryam">${esc(ownerName('maryam'))}</option>
+          ${active.map(o=>`<option value="${o}">${esc(ownerName(o))}</option>`).join('')}
         </select>
       </td>
       <td><button class="add-btn" data-role="add">افزودن</button></td>
@@ -576,16 +690,16 @@ function productCell(item, known){
 }
 
 function renderColumns(){
-  const aliList = document.getElementById('aliList');
-  const maryamList = document.getElementById('maryamList');
-  aliList.innerHTML = "";
-  maryamList.innerHTML = "";
-
-  let aliCount=0, maryamCount=0;
-  let aliProfit=0, maryamProfit=0;
-  let aliCapital=0, maryamCapital=0;
+  const active = activeOwners();
+  const data = {};
+  active.forEach(o=>{
+    data[o] = {capital:0, ownProfit:0, count:0};
+    const listEl = document.getElementById('list_'+o);
+    if(listEl) listEl.innerHTML = "";
+  });
 
   state.items.forEach(item=>{
+    const owner = active.includes(item.owner) ? item.owner : active[active.length-1];
     const known = item.productIndex >= 0 && !!PRODUCTS[item.productIndex];
     const qty = Number(item.qty)||0;
     const sale = Number(item.salePrice)||0;
@@ -601,8 +715,7 @@ function renderColumns(){
       <td><input class="invoice-edit" type="number" min="0" value="${sale}" data-edit="sale"></td>
       <td>
         <select class="invoice-owner" data-edit="owner">
-          <option value="ali" ${item.owner==='ali'?'selected':''}>${esc(ownerName('ali'))}</option>
-          <option value="maryam" ${item.owner==='maryam'?'selected':''}>${esc(ownerName('maryam'))}</option>
+          ${active.map(o=>`<option value="${o}" ${item.owner===o?'selected':''}>${esc(ownerName(o))}</option>`).join('')}
         </select>
       </td>
       <td class="profit-cell">${fmt(profit)}</td>
@@ -632,11 +745,13 @@ function renderColumns(){
     });
 
     const buyEdit = tr.querySelector('[data-edit="buy"]');
-    buyEdit.addEventListener('change', ()=>{
-      item.purchasePrice = Math.max(0, Number(buyEdit.value)||0);
-      saveState();
-      renderColumns();
-    });
+    if(buyEdit){
+      buyEdit.addEventListener('change', ()=>{
+        item.purchasePrice = Math.max(0, Number(buyEdit.value)||0);
+        saveState();
+        renderColumns();
+      });
+    }
     const pickSel = tr.querySelector('[data-edit="pick"]');
     if(pickSel){
       pickSel.addEventListener('change', ()=>{
@@ -656,57 +771,91 @@ function renderColumns(){
       renderColumns();
     });
 
-    if(item.owner === 'ali'){
-      aliList.appendChild(tr);
-      aliCount += qty;
-      aliCapital += cost;
-      aliProfit += profit;
-    } else {
-      maryamList.appendChild(tr);
-      maryamCount += qty;
-      maryamCapital += cost;
-      maryamProfit += profit;
-    }
+    const listEl = document.getElementById('list_'+owner);
+    if(listEl) listEl.appendChild(tr);
+    data[owner].count += qty;
+    data[owner].capital += cost;
+    data[owner].ownProfit += profit;
   });
 
-  if(aliCount===0) aliList.innerHTML = `<tr><td colspan="6" class="empty-msg">هنوز کالایی اضافه نشده</td></tr>`;
-  if(maryamCount===0) maryamList.innerHTML = `<tr><td colspan="6" class="empty-msg">هنوز کالایی اضافه نشده</td></tr>`;
+  const emptyRow = `<tr><td colspan="6" class="empty-msg">هنوز کالایی اضافه نشده</td></tr>`;
+  active.forEach(o=>{
+    const listEl = document.getElementById('list_'+o);
+    if(data[o].count===0 && listEl) listEl.innerHTML = emptyRow;
+    const set = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent = txt; };
+    set('count_'+o, fmt(data[o].count) + " قلم");
+    set('sub_'+o, fmt(data[o].capital) + " تومان");
+    set('profit_'+o, fmt(data[o].ownProfit) + " تومان");
+    set('cap_'+o, fmt(data[o].capital));
+    set('accCapital_'+o, fmt(data[o].capital));
+    set('accOwnProfit_'+o, fmt(data[o].ownProfit));
+  });
 
-  const totalCapital = aliCapital + maryamCapital;
-  const totalProfit = aliProfit + maryamProfit;
-  const eachShare = totalProfit / 2;
+  const totalCapital = active.reduce((s,o)=>s+data[o].capital,0);
+  const totalProfit = active.reduce((s,o)=>s+data[o].ownProfit,0);
+  const n = active.length;
 
-  document.getElementById('aliCount').textContent = fmt(aliCount) + " قلم";
-  document.getElementById('maryamCount').textContent = fmt(maryamCount) + " قلم";
-  document.getElementById('aliSubtotal').textContent = fmt(aliCapital) + " تومان";
-  document.getElementById('maryamSubtotal').textContent = fmt(maryamCapital) + " تومان";
-  document.getElementById('aliInvoiceProfit').textContent = fmt(aliProfit) + " تومان";
-  document.getElementById('maryamInvoiceProfit').textContent = fmt(maryamProfit) + " تومان";
+  const partners = active.filter(o=>isPartner(o));
+  const pooledProfit = partners.reduce((s,o)=>s+data[o].ownProfit,0);
+  const pCount = partners.length;
+  const eachShare = pCount ? pooledProfit / pCount : 0;
 
-  document.getElementById('capAli').textContent = fmt(aliCapital);
-  document.getElementById('capMaryam').textContent = fmt(maryamCapital);
-  document.getElementById('totalProfit').textContent = fmt(totalProfit);
-  document.getElementById('halfProfit').textContent = fmt(eachShare);
+  active.forEach(o=>{
+    const finalShare = isPartner(o) ? eachShare : data[o].ownProfit;
+    const el = document.getElementById('accShare_'+o);
+    if(el) el.textContent = fmt(finalShare);
+  });
 
-  document.getElementById('accountAliCapital').textContent = fmt(aliCapital);
-  document.getElementById('aliOwnProfit').textContent = fmt(aliProfit);
-  document.getElementById('aliShare').textContent = fmt(eachShare);
-  document.getElementById('accountMaryamCapital').textContent = fmt(maryamCapital);
-  document.getElementById('maryamOwnProfit').textContent = fmt(maryamProfit);
-  document.getElementById('maryamShare').textContent = fmt(eachShare);
-  document.getElementById('totalCapital').textContent = fmt(totalCapital);
-  document.getElementById('accountTotalProfit').textContent = fmt(totalProfit);
-  document.getElementById('accountHalfProfit').textContent = fmt(eachShare);
+  const totalProfitEl = document.getElementById('totalProfit');
+  if(totalProfitEl) totalProfitEl.textContent = fmt(totalProfit);
 
-  const settlement = eachShare - aliProfit;
-  const box = document.getElementById('profitSettlement');
-  if(box){
-    box.textContent = settlement > 0
-      ? `برای مساوی شدن سهم سود، ${ownerName('maryam')} ${fmt(settlement)} تومان به ${ownerName('ali')} می‌دهد`
-      : settlement < 0
-        ? `برای مساوی شدن سهم سود، ${ownerName('ali')} ${fmt(Math.abs(settlement))} تومان به ${ownerName('maryam')} می‌دهد`
-        : "سود هر دو نفر برابر است و تسویه‌ای لازم نیست";
+  const profitFoot = document.getElementById('profitFoot');
+  if(profitFoot){
+    profitFoot.innerHTML = pCount >= 2
+      ? `سهم هر شریک: <span id="halfProfit">${fmt(eachShare)}</span> تومان (بین ${fmt(pCount)} نفر تیک‌خورده)`
+      : `فعلاً هیچ دو نفری با هم شراکتی نیستند — سود مال خود هرکس`;
   }
+
+  const totalCapitalEl = document.getElementById('totalCapital');
+  if(totalCapitalEl) totalCapitalEl.textContent = fmt(totalCapital);
+  const accountTotalProfitEl = document.getElementById('accountTotalProfit');
+  if(accountTotalProfitEl) accountTotalProfitEl.textContent = fmt(totalProfit);
+  const accountHalfProfitEl = document.getElementById('accountHalfProfit');
+  if(accountHalfProfitEl) accountHalfProfitEl.textContent = pCount >= 2 ? fmt(eachShare) : '—';
+  const lblAccountHalf = document.getElementById('lblAccountHalf');
+  if(lblAccountHalf) lblAccountHalf.textContent = pCount >= 2 ? ("سهم هر شریک (تقسیم بر " + fmt(pCount) + ")") : "سهم شراکتی";
+
+  const settleBox = document.getElementById('profitSettlement');
+  if(settleBox){
+    if(pCount < 2){
+      settleBox.textContent = 'هیچ دو نفری با هم شراکتی نیستند؛ سود فروش‌های هرکس مال خودش می‌ماند و تسویه‌ای لازم نیست.';
+    } else if(pooledProfit === 0 && totalCapital === 0){
+      settleBox.textContent = '';
+    } else {
+      const lines = partners.map(o=>{
+        const diff = eachShare - data[o].ownProfit;
+        if(Math.abs(diff) < 1) return null;
+        return diff > 0
+          ? `${ownerName(o)} باید ${fmt(diff)} تومان دریافت کند`
+          : `${ownerName(o)} باید ${fmt(Math.abs(diff))} تومان بدهد`;
+      }).filter(Boolean);
+      settleBox.textContent = lines.length
+        ? ('برای مساوی شدن سهم سود شرکا: ' + lines.join('؛ '))
+        : 'سود همه‌ی شرکا برابر است و تسویه‌ای لازم نیست';
+    }
+  }
+}
+
+function fullRebuild(){
+  renderOwnerCountTabs();
+  buildOwnerNamesSkeleton();
+  buildStatsSkeleton();
+  buildAccountSkeleton();
+  buildInvoiceColumnsSkeleton();
+  buildExportButtons();
+  updateOwnerNameDisplays();
+  buildCatalog();
+  renderColumns();
 }
 
 const invoiceNameInput = document.getElementById("invoiceName");
@@ -718,31 +867,8 @@ if(invoiceNameInput){
   });
 }
 
-const ownerNameAliInput = document.getElementById("ownerNameAli");
-if(ownerNameAliInput){
-  ownerNameAliInput.addEventListener("input", ()=>{
-    state.ownerNames.ali = ownerNameAliInput.value;
-    saveState();
-    updateOwnerNameDisplays();
-    buildCatalog();
-    renderColumns();
-  });
-}
-const ownerNameMaryamInput = document.getElementById("ownerNameMaryam");
-if(ownerNameMaryamInput){
-  ownerNameMaryamInput.addEventListener("input", ()=>{
-    state.ownerNames.maryam = ownerNameMaryamInput.value;
-    saveState();
-    updateOwnerNameDisplays();
-    buildCatalog();
-    renderColumns();
-  });
-}
-
-updateOwnerNameDisplays();
 renderCategoryTabs();
-buildCatalog();
-renderColumns();
+fullRebuild();
 
 /* ---------- دریافت فاکتور از صفحه‌ی «صدور فاکتور» (آدرس با #inv=...) ---------- */
 function normName(s){
@@ -860,6 +986,8 @@ importInvoiceFromHash();
 
 function exportTableImage(ownerFilter){
   const items = Array.isArray(state.items) ? state.items : [];
+  const active = activeOwners();
+  if(!active.includes(ownerFilter)) ownerFilter = active[0];
   const selectedItems = items.filter(x => x.owner === ownerFilter);
 
   if(items.length === 0){
@@ -868,7 +996,7 @@ function exportTableImage(ownerFilter){
   }
 
   const faNum = n => fmt(Number(n)||0);
-  const ownerLabel = ownerFilter === "ali" ? ownerName('ali') : ownerName('maryam');
+  const ownerLabel = ownerName(ownerFilter);
 
   let capital=0, ownProfit=0;
   selectedItems.forEach(item=>{
@@ -879,15 +1007,21 @@ function exportTableImage(ownerFilter){
     ownProfit += q*(sell-buy);
   });
 
-  const totalProfit = items.reduce((sum,item)=>{
+  const profitByOwner = {};
+  active.forEach(o=>{ profitByOwner[o] = 0; });
+  items.forEach(item=>{
+    const o = active.includes(item.owner) ? item.owner : active[active.length-1];
     const q=Number(item.qty)||0;
     const buy=Number(item.purchasePrice)||0;
     const sell=Number(item.salePrice)||0;
-    return sum + q*(sell-buy);
-  },0);
+    profitByOwner[o] += q*(sell-buy);
+  });
+  const partnersNow = active.filter(o=>isPartner(o));
+  const pooledProfit = partnersNow.reduce((s,o)=>s+profitByOwner[o],0);
+  const pCountNow = partnersNow.length;
 
-  // سود نهایی هر نفر = نصف سود کل
-  const finalShare = totalProfit / 2;
+  // سود نهایی = اگه این نفر تیک «سود شراکتی» رو زده، سود مجموع شرکا تقسیم بر تعدادشون؛ اگه نه، سود خودش
+  const finalShare = isPartner(ownerFilter) && pCountNow ? (pooledProfit / pCountNow) : ownProfit;
   // مبلغ واریزی نهایی = سرمایه همان نفر + سود نهایی همان نفر
   const finalPayable = capital + finalShare;
 
@@ -991,7 +1125,7 @@ function exportTableImage(ownerFilter){
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
     a.href=url;
-    const safeOwnerLabel = ownerLabel.replace(/[\\/:*?"<>|]/g,"_").slice(0,60) || (ownerFilter==="ali"?"علی":"مریم");
+    const safeOwnerLabel = (ownerLabel || "نفر").replace(/[\\/:*?"<>|]/g,"_").slice(0,60);
     a.download="فاکتور_"+safeOwnerLabel+"_با_مبلغ_واریزی_نهایی.png";
     document.body.appendChild(a);
     a.click();
@@ -1000,22 +1134,14 @@ function exportTableImage(ownerFilter){
   },"image/png",1);
 }
 
-
-document.getElementById('exportAli').addEventListener('click', ()=>exportTableImage("ali"));
-document.getElementById('exportMaryam').addEventListener('click', ()=>exportTableImage("maryam"));
-
-// ===== خروجی ترکیبی: سود هر دو نفر کنار هم، در یک عکس، با تمام جزئیات کالاها =====
+// ===== خروجی ترکیبی: سود همه‌ی نفرات کنار هم، در یک عکس، هوشمند بر اساس تعداد نفرات فعال (۲ تا ۴) =====
 function exportCombinedImage(){
   const items = Array.isArray(state.items) ? state.items : [];
   if(items.length === 0){
     alert("هنوز هیچ کالایی برای هیچ‌کدام ثبت نشده است.");
     return;
   }
-
-  const aliItems = items.filter(x => x.owner === "ali");
-  const maryamItems = items.filter(x => x.owner === "maryam");
-  const aliLabel = ownerName('ali');
-  const maryamLabel = ownerName('maryam');
+  const active = activeOwners();
   const faNum = n => fmt(Number(n)||0);
 
   function calcFor(list){
@@ -1028,25 +1154,34 @@ function exportCombinedImage(){
     });
     return {capital, ownProfit, totalQty};
   }
-  const aliCalc = calcFor(aliItems);
-  const maryamCalc = calcFor(maryamItems);
-  const totalProfit = items.reduce((sum,item)=>{
-    const q=Number(item.qty)||0, buy=Number(item.purchasePrice)||0, sell=Number(item.salePrice)||0;
-    return sum + q*(sell-buy);
-  },0);
-  const finalShare = totalProfit/2;
-  const aliFinalPayable = aliCalc.capital + finalShare;
-  const maryamFinalPayable = maryamCalc.capital + finalShare;
 
-  // --- تنظیمات هندسی ---
-  const margin=36, colGap=32, contentW=610;
-  const colW=[210,44,84,84,94,94]; // کالا، تعداد، خرید، فروش، سرمایه، سود
-  const nameFontSize=15, nameLineH=20, rowVPad=20, minRowH=52;
-  const headH=48, ownerLabelH=62, summaryH=176, footerRowH=56, gapAfterSummary=14, gapAfterHeader=6;
+  const calcByOwner = {};
+  active.forEach(o=>{ calcByOwner[o] = calcFor(items.filter(x=>x.owner===o)); });
+  const partnersNow = active.filter(o=>isPartner(o));
+  const pooledProfit = partnersNow.reduce((s,o)=>s+calcByOwner[o].ownProfit,0);
+  const pCountNow = partnersNow.length;
+  const eachShare = pCountNow ? pooledProfit / pCountNow : 0;
+
+  const cols = active.map(o=>{
+    const list = items.filter(x=>x.owner===o);
+    const calc = calcByOwner[o];
+    const finalShare = isPartner(o) && pCountNow ? eachShare : calc.ownProfit;
+    const finalPayable = calc.capital + finalShare;
+    return { owner:o, label: ownerName(o), items:list, calc, finalShare, finalPayable, accent: ownerAccent(o) };
+  });
+  const n = cols.length;
+
+  // --- تنظیمات هندسی (عرض هر ستون بر اساس تعداد نفرات، تا ۴ ستون کنار هم جا بشه) ---
+  const margin=36, colGap=26, contentW = n>=4 ? 470 : (n===3 ? 540 : 610);
+  const colW = n>=4 ? [160,34,64,64,72,72] : (n===3 ? [180,38,72,72,82,82] : [210,44,84,84,94,94]);
+  const nameFontSize = n>=4 ? 13 : (n===3 ? 14 : 15);
+  const nameLineH = n>=4 ? 17 : (n===3 ? 18 : 20);
+  const rowVPad=18, minRowH = n>=4 ? 44 : 50;
+  const headH = n>=4 ? 40 : 46, ownerLabelH=58, summaryH = n>=4 ? 156 : 172, footerRowH = n>=4 ? 48 : 54;
+  const gapAfterSummary=12, gapAfterHeader=6;
   const titleH=118, bottomMargin=40;
-  const W = margin*2 + contentW*2 + colGap;
+  const W = margin*2 + contentW*n + colGap*(n-1);
 
-  // --- کانتکست موقت فقط برای اندازه‌گیری متن (برای محاسبه ارتفاع دقیق قبل از ساخت کانواس نهایی) ---
   const mctx = document.createElement("canvas").getContext("2d");
   function mFont(size,weight="600"){ mctx.font = `${weight} ${size}px Tahoma, Arial, sans-serif`; }
   function wrapLines(txt,maxWidth,size,weight){
@@ -1065,22 +1200,19 @@ function exportCombinedImage(){
   function prepRows(list){
     let totalH=0;
     const rows = list.map(item=>{
-      const nameLines = wrapLines(itemName(item), colW[0]-18, nameFontSize, "700");
+      const nameLines = wrapLines(itemName(item), colW[0]-16, nameFontSize, "700");
       const rh = Math.max(minRowH, nameLines.length*nameLineH + rowVPad);
       totalH += rh;
       return {item, nameLines, rh};
     });
     return {rows, totalH};
   }
-  const aliPrep = prepRows(aliItems);
-  const maryamPrep = prepRows(maryamItems);
+  cols.forEach(c=>{ c.prep = prepRows(c.items); });
 
-  const aliColH = ownerLabelH + summaryH + gapAfterSummary + headH + gapAfterHeader + aliPrep.totalH + footerRowH;
-  const maryamColH = ownerLabelH + summaryH + gapAfterSummary + headH + gapAfterHeader + maryamPrep.totalH + footerRowH;
-  const bodyH = Math.max(aliColH, maryamColH, headH+minRowH+footerRowH);
+  const colHeights = cols.map(c=> ownerLabelH+summaryH+gapAfterSummary+headH+gapAfterHeader+c.prep.totalH+footerRowH);
+  const bodyH = Math.max.apply(null, colHeights.concat([headH+minRowH+footerRowH]));
   const logicalH = titleH + bodyH + bottomMargin;
 
-  // --- ساخت کانواس نهایی ---
   const SCALE=3;
   const canvas=document.createElement("canvas");
   canvas.width=W*SCALE; canvas.height=logicalH*SCALE;
@@ -1105,32 +1237,38 @@ function exportCombinedImage(){
   }
 
   let y=margin;
-  center("دفتر مشترک محصولات غیاث — گزارش سود هر دو نفر",W/2,y+28,30,"900");
+  center("دفتر مشترک محصولات غیاث — گزارش سود همه نفرات",W/2,y+28,28,"900");
   const invoiceName=(document.getElementById("invoiceName")?.value||"").trim();
-  center((invoiceName?("نام فاکتور: "+invoiceName+"   |   "):"")+"سود کل شراکت: "+faNum(totalProfit)+" تومان   |   سهم هر نفر: "+faNum(finalShare)+" تومان",W/2,y+64,20,"700","#555d66");
+  const modeTxt = pCountNow >= 2
+    ? ("سود شرکا: "+faNum(pooledProfit)+" تومان   |   سهم هر شریک: "+faNum(eachShare)+" تومان")
+    : "فعلاً هیچ دو نفری با هم شراکتی نیستند — سود مال خود هرکس";
+  center((invoiceName?("نام فاکتور: "+invoiceName+"   |   "):"")+modeTxt,W/2,y+62,18,"700","#555d66");
   y+=titleH;
 
-  // ستون راست = نفر اول (علی) — ستون چپ = نفر دوم (مریم)، مطابق ترتیب صفحه
-  const colX = { right: W-margin-contentW, left: margin };
+  // ستون سمت راست = نفر اول، به ترتیب به سمت چپ ادامه پیدا می‌کنه
+  const colX = [];
+  { let cursor = W - margin - contentW;
+    for(let i=0;i<n;i++){ colX.push(cursor); cursor -= (contentW+colGap); } }
 
-  function drawColumn(x, ownerLabel, calc, finalPayable, prep, accentColor, accentSoft){
+  function drawColumn(x, col){
+    const {owner, label, calc, finalShare, finalPayable, prep, accent} = col;
     let cy=y;
-    right(ownerLabel, x+contentW, cy+24, 24, "900", accentColor);
-    right(prep.rows.length+" قلم کالا", x+contentW, cy+48, 14, "700", "#8a8378");
+    right(label, x+contentW, cy+22, 22, "900", accent.main);
+    right(prep.rows.length+" قلم کالا", x+contentW, cy+44, 13, "700", "#8a8378");
     cy+=ownerLabelH;
 
-    rounded(x,cy,contentW,summaryH,16,"#ffffff","#c9c2b7");
-    right("سرمایه: "+faNum(calc.capital)+" تومان",x+contentW-22,cy+40,19,"700","#555d66");
-    right("سود نهایی (سهم ۵۰٪ از سود کل): "+faNum(finalShare)+" تومان",x+contentW-22,cy+82,19,"700","#555d66");
-    right("مبلغ واریزی نهایی",x+contentW-22,cy+120,20,"900","#20262b");
-    right(faNum(finalPayable)+" تومان",x+contentW-22,cy+156,30,"900",accentColor);
+    rounded(x,cy,contentW,summaryH,15,"#ffffff","#c9c2b7");
+    right("سرمایه: "+faNum(calc.capital)+" تومان",x+contentW-20,cy+36,17,"700","#555d66");
+    right((isPartner(owner)?"سود نهایی (سهم شراکتی): ":"سود نهایی (سود خودش): ")+faNum(finalShare)+" تومان",x+contentW-20,cy+74,17,"700","#555d66");
+    right("مبلغ واریزی نهایی",x+contentW-20,cy+108,18,"900","#20262b");
+    right(faNum(finalPayable)+" تومان",x+contentW-20,cy+140,27,"900",accent.main);
     cy+=summaryH+gapAfterSummary;
 
     const tColX=[]; let cursor=x+contentW;
     for(const w of colW){ cursor-=w; tColX.push(cursor); }
     const headers=["کالا","تعداد","خرید","فروش","سرمایه","سود"];
     rounded(x,cy,contentW,headH,8,"#f3f0e8","#ddd8cc");
-    headers.forEach((h,i)=>right(h,tColX[i]+colW[i]-8,cy+headH/2,14,"900","#515962"));
+    headers.forEach((h,i)=>right(h,tColX[i]+colW[i]-7,cy+headH/2,13,"900","#515962"));
     cy+=headH+gapAfterHeader;
 
     prep.rows.forEach((row,idx)=>{
@@ -1141,55 +1279,56 @@ function exportCombinedImage(){
       ctx.fillRect(x,cy,contentW,rh);
       ctx.save(); ctx.direction="rtl"; ctx.textAlign="right"; ctx.textBaseline="top";
       font(nameFontSize,"700"); ctx.fillStyle="#20262b";
-      const nameX=tColX[0]+colW[0]-9;
+      const nameX=tColX[0]+colW[0]-8;
       let ny=cy+(rh-row.nameLines.length*nameLineH)/2;
       row.nameLines.forEach(line=>{ ctx.fillText(line,nameX,ny); ny+=nameLineH; });
       ctx.restore();
-      center(faNum(q),tColX[1]+colW[1]/2,cy+rh/2,15,"900");
-      right(faNum(buy),tColX[2]+colW[2]-8,cy+rh/2,13,"700","#7a7468");
-      right(faNum(sell),tColX[3]+colW[3]-8,cy+rh/2,14,"800");
-      right(faNum(itemCapital),tColX[4]+colW[4]-8,cy+rh/2,14,"800");
-      right(faNum(itemProfit),tColX[5]+colW[5]-8,cy+rh/2,16,"900",accentColor);
+      center(faNum(q),tColX[1]+colW[1]/2,cy+rh/2,14,"900");
+      right(faNum(buy),tColX[2]+colW[2]-7,cy+rh/2,12,"700","#7a7468");
+      right(faNum(sell),tColX[3]+colW[3]-7,cy+rh/2,13,"800");
+      right(faNum(itemCapital),tColX[4]+colW[4]-7,cy+rh/2,13,"800");
+      right(faNum(itemProfit),tColX[5]+colW[5]-7,cy+rh/2,15,"900",accent.main);
       ctx.strokeStyle="#ebe7de"; ctx.lineWidth=1; ctx.strokeRect(x,cy,contentW,rh);
       cy+=rh;
     });
 
     if(prep.rows.length===0){
       ctx.fillStyle="#fbfaf7"; ctx.fillRect(x,cy,contentW,minRowH);
-      center("کالایی ثبت نشده",x+contentW/2,cy+minRowH/2,14,"600","#8a8378");
+      center("کالایی ثبت نشده",x+contentW/2,cy+minRowH/2,13,"600","#8a8378");
       cy+=minRowH;
     }
 
-    ctx.fillStyle=accentSoft; ctx.fillRect(x,cy,contentW,footerRowH);
-    right("جمع",x+contentW-14,cy+footerRowH/2,17,"900");
-    center(faNum(calc.totalQty),tColX[1]+colW[1]/2,cy+footerRowH/2,15,"900");
-    right(faNum(calc.capital)+" ت",tColX[4]+colW[4]-8,cy+footerRowH/2,15,"900");
-    right(faNum(calc.ownProfit)+" ت",tColX[5]+colW[5]-8,cy+footerRowH/2,17,"900",accentColor);
+    ctx.fillStyle=accent.soft; ctx.fillRect(x,cy,contentW,footerRowH);
+    right("جمع",x+contentW-13,cy+footerRowH/2,16,"900");
+    center(faNum(calc.totalQty),tColX[1]+colW[1]/2,cy+footerRowH/2,14,"900");
+    right(faNum(calc.capital)+" ت",tColX[4]+colW[4]-7,cy+footerRowH/2,14,"900");
+    right(faNum(calc.ownProfit)+" ت",tColX[5]+colW[5]-7,cy+footerRowH/2,16,"900",accent.main);
     ctx.strokeStyle="#ddd8cc"; ctx.lineWidth=1.5; ctx.strokeRect(x,cy,contentW,footerRowH);
   }
 
-  drawColumn(colX.right, aliLabel, aliCalc, aliFinalPayable, aliPrep, "#0f3d3e", "#e4efee");
-  drawColumn(colX.left, maryamLabel, maryamCalc, maryamFinalPayable, maryamPrep, "#a6612e", "#faeee0");
+  cols.forEach((c,i)=> drawColumn(colX[i], c));
 
-  // خط جداکننده وسط
+  // خط‌های جداکننده بین ستون‌ها
   ctx.strokeStyle="#ddd6c6"; ctx.lineWidth=1;
-  ctx.beginPath();
-  ctx.moveTo(W/2,y-6); ctx.lineTo(W/2,y+bodyH+6); ctx.stroke();
+  for(let i=1;i<n;i++){
+    const sepX = colX[i-1]-colGap/2;
+    ctx.beginPath(); ctx.moveTo(sepX,y-6); ctx.lineTo(sepX,y+bodyH+6); ctx.stroke();
+  }
 
   canvas.toBlob(blob=>{
     if(!blob){alert("ساخت خروجی عکس ناموفق بود.");return;}
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
     a.href=url;
-    const safeName=(invoiceName||"مشترک").replace(/[\\/:*?"<>|]/g,"_").slice(0,60);
-    a.download="فاکتور_سود_دو_نفر_"+safeName+".png";
+    const safeName=((document.getElementById("invoiceName")?.value||"").trim()||"مشترک").replace(/[\\/:*?"<>|]/g,"_").slice(0,60);
+    a.download="فاکتور_سود_"+fmt(n)+"_نفر_"+safeName+".png";
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
   },"image/png",1);
 }
-document.getElementById('exportBoth').addEventListener('click', exportCombinedImage);
+document.getElementById('exportAll').addEventListener('click', exportCombinedImage);
 
 
 // ذخیره و لود فاکتور به صورت فایل JSON
@@ -1197,9 +1336,11 @@ function saveInvoiceToFile(){
   const invoiceName = (document.getElementById("invoiceName")?.value || "").trim();
   const payload = {
     app: "دفتر مشترک محصولات غیاث",
-    version: 1,
+    version: 2,
     savedAt: new Date().toISOString(),
     invoiceName: invoiceName,
+    ownerCount: state.ownerCount,
+    partnerFlags: state.partnerFlags,
     ownerNames: state.ownerNames || {},
     salePrices: state.salePrices || {},
     items: Array.isArray(state.items) ? state.items : []
@@ -1240,11 +1381,26 @@ function loadInvoiceFromFile(file){
         customName: item.customName ? String(item.customName) : undefined,
         id: Number(item.id) || 0,
         productIndex: item.productIndex,
-        owner: item.owner === "maryam" ? "maryam" : "ali",
+        owner: OWNERS.includes(item.owner) ? item.owner : "ali",
         qty: Number(item.qty) || 0,
         salePrice: Number(item.salePrice) || 0,
         purchasePrice: Number(item.purchasePrice) || 0
       }));
+
+      let ownerCount = [2,3,4].includes(data.ownerCount) ? data.ownerCount : 2;
+      const maxOwnerIdx = validItems.reduce((m,it)=>Math.max(m, OWNERS.indexOf(it.owner)), 0);
+      ownerCount = Math.max(ownerCount, maxOwnerIdx+1);
+
+      let partnerFlags;
+      if(data.partnerFlags && typeof data.partnerFlags === "object"){
+        partnerFlags = {};
+        OWNERS.forEach(o=>{ partnerFlags[o] = typeof data.partnerFlags[o] === "boolean" ? data.partnerFlags[o] : true; });
+      } else {
+        // سازگاری با فایل‌های قدیمی‌تر که فقط یک partnership یکسان برای همه داشتند
+        const legacy = typeof data.partnership === "boolean" ? data.partnership : true;
+        partnerFlags = {};
+        OWNERS.forEach(o=>{ partnerFlags[o] = legacy; });
+      }
 
       state = {
         salePrices: data.salePrices || {},
@@ -1252,6 +1408,8 @@ function loadInvoiceFromFile(file){
         items: validItems,
         invoiceName: String(data.invoiceName || ""),
         ownerNames: (data.ownerNames && typeof data.ownerNames === "object") ? data.ownerNames : (state.ownerNames || {}),
+        ownerCount: ownerCount,
+        partnerFlags: partnerFlags,
         version: PRODUCTS_VERSION
       };
 
@@ -1261,9 +1419,7 @@ function loadInvoiceFromFile(file){
       const nameInput = document.getElementById("invoiceName");
       if(nameInput) nameInput.value = state.invoiceName;
 
-      updateOwnerNameDisplays();
-      buildCatalog();
-      renderColumns();
+      fullRebuild();
 
       alert("فاکتور با موفقیت لود شد.");
     }catch(e){
@@ -1285,15 +1441,13 @@ document.getElementById("invoiceFile").addEventListener("change", (e)=>{
   e.target.value = "";
 });
 
-  document.getElementById('resetAll').addEventListener('click', ()=>{
+document.getElementById('resetAll').addEventListener('click', ()=>{
   if(confirm('همه‌ی کالاهای اضافه‌شده و قیمت‌های ویرایش‌شده پاک بشه؟')){
-    state = {salePrices:{}, buyPrices:{}, items:[], ownerNames: state.ownerNames || {}, version: PRODUCTS_VERSION};
+    state = {salePrices:{}, buyPrices:{}, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, version: PRODUCTS_VERSION};
     saveState();
     activeCategory = 'همه';
-    updateOwnerNameDisplays();
     renderCategoryTabs();
-    buildCatalog();
-    renderColumns();
+    fullRebuild();
   }
 });
 
