@@ -46,6 +46,12 @@
   }
   .owner-count-tabs button:hover{border-color:var(--ali);color:var(--ali);}
   .owner-count-tabs button.active{background:var(--ali);border-color:var(--ali);color:#fff;}
+  .post-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:12px 0;}
+  .post-box summary{cursor:pointer;font-size:.82rem;font-weight:700;}
+  .post-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:.78rem;}
+  .post-table th,.post-table td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line);}
+  .post-table input{width:100px;border:1px solid #d9c98f;background:#fffdf7;border-radius:6px;padding:4px 6px;font-family:inherit;}
+  .post-warn{color:#a6423a;font-size:.68rem;}
   .pl-tabs{display:flex;gap:6px;}
   .pl-tabs button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:0 14px;height:34px;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;}
   .pl-tabs button:hover{border-color:var(--ali);color:var(--ali);}
@@ -193,6 +199,7 @@
     <div class="settings-row">
       <label class="row-label">لیست قیمت خرید:</label>
       <div class="pl-tabs" id="priceListTabs"></div>
+      <label class="switch-label" id="postToggleWrap"><input type="checkbox" id="addPostage"> محاسبه با هزینه پست (اضافه شدن خودکار به قیمت خرید)</label>
     </div>
     <div class="settings-row">
       <label class="row-label">تعداد نفرات شریک:</label>
@@ -200,6 +207,12 @@
     </div>
     <div class="partnership-hint" id="partnershipHint"></div>
   </div>
+
+  <details class="post-box" id="postBox">
+    <summary>هزینه پست (لیست مهر ۱۴۰۵) — سهم هر عدد = هزینه پست بسته ÷ تعداد در بسته</summary>
+    <div class="table-scroll"><table class="post-table"><thead><tr><th>دسته</th><th>تعداد در بسته</th><th>هزینه پست بسته (تومان)</th><th>سهم هر عدد</th></tr></thead><tbody id="postBody"></tbody></table></div>
+    <div class="post-warn">اگر کمتر از یک بسته کامل سفارش بدهید، پست هر عدد بیشتر می‌شود؛ در این حالت عدد بسته را خودتان تغییر بدهید.</div>
+  </details>
 
   <div class="owner-names-box" id="ownerNamesBox"></div>
 
@@ -324,12 +337,45 @@ const PRODUCTS = [
 ];
 
 // قیمت خرید مهر ۱۴۰۵ = قیمت خرید لیست PDF + ۳۰٬۰۰۰ تومان هزینه پست (به ترتیب همان آرایه PRODUCTS)
-const MEHR_POST = 30000;
 const MEHR_SALE = [246000,239000,238000,238000,232000,232000,237000,228000,258000,270000,261000,270000,246000,246000,246000,279000,211000,320000,204000,204000,285000,246000,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,252000,245000,245000,245000,null,null,null,null,null,586000,586000,281000,281000,281000,281000,281000,281000,260000,287000]; // قیمت فروش پیش‌فرض مهر ۱۴۰۵ (ستون «قیمت خرید» در فایل رمی‌شاپ)؛ null = بدون تغییر نسبت به لیست قبلی
-const MEHR_BUY = [161500,155000,153500,154500,150000,155000,153500,149500,173500,188000,167500,183500,167500,158000,137000,185500,131000,198000,152500,152500,222000,197000,1418000,2370000,2346000,1866000,2298000,1609800,1585000,1308700,2309500,990000,2190000,1346000,1398000,1268500,3630000,2910000,1135000,1027000,1005500,1016500,951500,1026500,1005500,1297000,1487500,1599500,1401000,1418000,1349000,167000,167000,167000,167000,135000,136000,134000,132500,131000,437500,437500,217500,217500,217500,217500,217500,217500,180000,206500];
+const MEHR_BASE = [131500,125000,123500,124500,120000,125000,123500,119500,143500,158000,137500,153500,137500,128000,107000,155500,101000,168000,122500,122500,192000,167000,1388000,2340000,2316000,1836000,2268000,1579800,1555000,1278700,2279500,960000,2160000,1316000,1368000,1238500,3600000,2880000,1105000,997000,975500,986500,921500,996500,975500,1267000,1457500,1569500,1371000,1388000,1319000,137000,137000,137000,137000,105000,106000,104000,102500,101000,407500,407500,187500,187500,187500,187500,187500,187500,150000,176500]; // قیمت خرید مهر ۱۴۰۵ طبق PDF (بدون هزینه پست)
+// هزینه پست: برای هر دسته «تعداد در بسته» و «هزینه پست بسته» ثبت می‌شود؛ سهم هر عدد = هزینه بسته ÷ تعداد
+const POSTAGE_GROUPS = [
+  {key:"nano500", label:"نانو ۵۰۰ سی‌سی (خانگی و خودرویی) — کارتن", idx:[...Array(22).keys()], qty:20, post:600000},
+  {key:"gallon20", label:"۲۰ لیتری‌ها (خانگی، خودرویی، صنعتی) — هر گالن", idx:[...Array(29).keys()].map(k=>k+22), qty:1, post:800000, unverified:true},
+  {key:"spray", label:"اسپری خوشبوکننده — کارتن", idx:[51,52,53,54], qty:25, post:250000},
+  {key:"tissue", label:"دستمال نانو — ۶ جین (۳۶ عدد)", idx:[55,56,57,58,59], qty:36, post:150000},
+  {key:"cologne", label:"ادکلن — کارتن", idx:[60,61], qty:6, post:150000},
+  {key:"perfume", label:"عطر — کارتن", idx:[62,63,64,65,66,67], qty:24, post:250000},
+  {key:"leather_nobox", label:"نانو چرم بدون جعبه — کارتن", idx:[68], qty:25, post:250000},
+  {key:"leather_box", label:"نانو چرم با جعبه — کارتن", idx:[69], qty:12, post:250000}
+];
+function appliedPostage(i){
+  return (state.priceList === "mehr" && state.addPostage) ? unitPostage(i) : 0;
+}
+function priceListTitle(){
+  const t = PRICE_LISTS[state.priceList].title;
+  if(state.priceList !== "mehr") return t;
+  return t + (state.addPostage ? " (با هزینه پست)" : " (بدون هزینه پست)");
+}
+function postageGroupOf(i){ return POSTAGE_GROUPS.find(g=>g.idx.includes(i)); }
+function postageParams(g){
+  const o = (state.postage && state.postage[g.key]) || {};
+  const qty = Number(o.qty) > 0 ? Number(o.qty) : g.qty;
+  const post = (o.post !== undefined && o.post !== null && o.post !== "" && Number(o.post) >= 0) ? Number(o.post) : g.post;
+  return {qty, post};
+}
+function unitPostage(i){
+  if(!state.addPostage) return 0;
+  const g = postageGroupOf(i);
+  if(!g) return 0;
+  const p = postageParams(g);
+  return Math.round(p.post / p.qty);
+}
+
 const PRICE_LISTS = {
   summer: {label:"تابستان ۱۴۰۵", title:"لیست قیمت مرداد ۱۴۰۵"},
-  mehr:   {label:"مهر ۱۴۰۵",    title:"لیست قیمت مهر ۱۴۰۵ (با ۳۰ هزار پست)"}
+  mehr:   {label:"مهر ۱۴۰۵",    title:"لیست قیمت مهر ۱۴۰۵"}
 };
 
 const OWNERS = ['ali','maryam','p3','p4'];
@@ -356,6 +402,9 @@ if(!state.salePrices) state.salePrices = {};
 if(!state.buyPrices) state.buyPrices = {};
 if(!state.priceList || !PRICE_LISTS[state.priceList]) state.priceList = "summer";
 if(!state.buyPricesByList || typeof state.buyPricesByList !== "object") state.buyPricesByList = {};
+if(!state.postage || typeof state.postage !== "object") state.postage = {};
+// تیک «محاسبه با هزینه پست» همیشه روشن باز می‌شود (بعد از باز شدن می‌شود خاموشش کرد)
+state.addPostage = true;
 if(!state.salePricesByList || typeof state.salePricesByList !== "object") state.salePricesByList = {};
 // همیشه با لیست «مهر ۱۴۰۵» باز شود (انتخاب تابستان ماندگار نیست)
 if(state.priceList !== "mehr"){
@@ -552,7 +601,7 @@ function updateOwnerNameDisplays(){
   const names = active.map(o=>ownerName(o));
   const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
 
-  setText('subTitle', names.join('، ') + " — " + PRICE_LISTS[state.priceList].title);
+  setText('subTitle', names.join('، ') + " — " + priceListTitle());
   setText('catalogNote', "قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون یکی از نفرات اضافه‌ش کنید.");
 
   active.forEach(o=>{
@@ -594,7 +643,7 @@ function getSalePrice(i){
 
 function getBuyPrice(i){
   if(state.buyPrices[i] !== undefined) return state.buyPrices[i];
-  return state.priceList === "mehr" ? MEHR_BUY[i] : PRODUCTS[i][2];
+  return state.priceList === "mehr" ? (MEHR_BASE[i] + unitPostage(i)) : PRODUCTS[i][2];
 }
 
 function setPriceList(key){
@@ -607,6 +656,49 @@ function setPriceList(key){
   state.salePrices = state.salePricesByList[key] || {};
   saveState();
   fullRebuild();
+}
+
+
+function renderPostageBox(){
+  const box = document.getElementById('postBox');
+  const body = document.getElementById('postBody');
+  if(!box || !body) return;
+  const isMehr = state.priceList === "mehr";
+  box.style.display = isMehr ? "" : "none";
+  const wrap = document.getElementById('postToggleWrap');
+  const chk = document.getElementById('addPostage');
+  if(wrap) wrap.style.display = isMehr ? "" : "none";
+  if(chk){
+    chk.checked = !!state.addPostage;
+    chk.onchange = ()=>{
+      state.addPostage = chk.checked;
+      saveState();
+      updateOwnerNameDisplays();
+      renderPostageBox();
+      buildCatalog();
+    };
+  }
+  box.style.opacity = state.addPostage ? "1" : ".5";
+  body.innerHTML = "";
+  POSTAGE_GROUPS.forEach(g=>{
+    const p = postageParams(g);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${g.label}${g.unverified ? ' <span class="post-warn">⚠ تایید نشده</span>' : ''}</td>
+      <td><input type="number" min="1" data-k="qty" value="${p.qty}"></td>
+      <td><input type="number" min="0" data-k="post" value="${p.post}"></td>
+      <td class="unit">${fmt(Math.round(p.post/p.qty))}</td>`;
+    body.appendChild(tr);
+    tr.querySelectorAll('input').forEach(inp=>{
+      inp.addEventListener('change', ()=>{
+        if(!state.postage[g.key]) state.postage[g.key] = {};
+        const v = parseFloat(inp.value);
+        state.postage[g.key][inp.dataset.k] = isFinite(v) ? v : undefined;
+        saveState();
+        renderPostageBox();
+        buildCatalog();
+      });
+    });
+  });
 }
 
 function renderPriceListTabs(){
@@ -671,7 +763,7 @@ function buildCatalog(){
 
     tr.innerHTML = `
       <td class="name">${p[1]}${flag}</td>
-      <td><input class="editable" type="number" min="0" data-role="buy" value="${bp!==null?bp:''}" placeholder="—"></td>
+      <td><input class="editable" type="number" min="0" data-role="buy" value="${bp!==null?bp:''}" placeholder="—">${appliedPostage(i)>0 ? `<div class="imeta" style="color:#2f5fa6">شامل پست: ${fmt(appliedPostage(i))}</div>` : ""}</td>
       <td><input class="editable" type="number" min="0" data-role="sale" value="${sp!==null?sp:''}" placeholder="—"></td>
       <td><input class="editable" type="number" min="0" data-role="qty" placeholder="0" style="max-width:60px"></td>
       <td>
@@ -711,7 +803,8 @@ function buildCatalog(){
         owner: owner,
         qty: qty,
         salePrice: salePriceNow,
-        purchasePrice: (buyInput.value === "" ? 0 : parseFloat(buyInput.value)) || 0
+        purchasePrice: (buyInput.value === "" ? 0 : parseFloat(buyInput.value)) || 0,
+        postage: appliedPostage(i)
       });
 
       saveState();
@@ -740,7 +833,7 @@ function productCell(item, known){
   return top + `<div class="item-sub">
       <label>خرید</label>
       <input class="invoice-edit sub-buy" type="number" min="0" data-edit="buy" value="${Number(item.purchasePrice)||0}">
-    </div>`;
+    </div>` + (Number(item.postage)>0 ? `<div class="imeta" style="color:#2f5fa6">شامل پست هر عدد: ${fmt(Number(item.postage))}</div>` : "");
 }
 
 function renderColumns(){
@@ -814,6 +907,7 @@ function renderColumns(){
         item.productIndex = k;
         delete item.customName;
         item.purchasePrice = Number(getBuyPrice(k)) || 0;
+        item.postage = appliedPostage(k);
         saveState();
         renderColumns();
       });
@@ -902,6 +996,7 @@ function renderColumns(){
 
 function fullRebuild(){
   renderPriceListTabs();
+  renderPostageBox();
   renderOwnerCountTabs();
   buildOwnerNamesSkeleton();
   buildStatsSkeleton();
@@ -1007,7 +1102,8 @@ function importInvoiceFromHash(){
       owner: owner,
       qty: qty,
       salePrice: Math.round(price * factor),
-      purchasePrice: idx >= 0 ? (Number(getBuyPrice(idx)) || 0) : 0
+      purchasePrice: idx >= 0 ? (Number(getBuyPrice(idx)) || 0) : 0,
+      postage: idx >= 0 ? appliedPostage(idx) : 0
     };
     if(idx < 0) row.customName = name;
     return row;
@@ -1052,6 +1148,8 @@ function exportTableImage(ownerFilter){
 
   const faNum = n => fmt(Number(n)||0);
   const ownerLabel = ownerName(ownerFilter);
+  const hasPost = selectedItems.some(it => (Number(it.postage)||0) > 0);
+  const totalPost = selectedItems.reduce((sm,it)=> sm + (Number(it.qty)||0)*(Number(it.postage)||0), 0);
 
   let capital=0, ownProfit=0;
   selectedItems.forEach(item=>{
@@ -1084,7 +1182,7 @@ function exportTableImage(ownerFilter){
   const W=1450, margin=40, rowH=86, headH=86;
   const titleH=155, summaryH=430, footerH=90;
 
-  const logicalH = titleH + summaryH + headH + Math.max(1,selectedItems.length)*rowH + footerH + 60;
+  const logicalH = titleH + summaryH + headH + Math.max(1,selectedItems.length)*rowH + footerH + 60 + (hasPost?40:0);
   const canvas=document.createElement("canvas");
   canvas.width=W*SCALE;
   canvas.height=logicalH*SCALE;
@@ -1152,10 +1250,11 @@ function exportTableImage(ownerFilter){
   y+=280;
 
   // جدول کالاهای همان شخص
-  const colW=[560,110,190,210,210];
+  const colW = hasPost ? [430,90,180,190,190,190] : [560,110,190,210,210];
   const colX=[]; let cursor=W-margin;
   for(const w of colW){cursor-=w; colX.push(cursor);}
-  const headers=["کالا","تعداد","قیمت فروش","سرمایه","سود"];
+  const headers = hasPost ? ["کالا","تعداد","قیمت فروش","هزینه پست هر عدد","سرمایه (با پست)","سود"] : ["کالا","تعداد","قیمت فروش","سرمایه","سود"];
+  const iCap = hasPost ? 4 : 3, iProfit = hasPost ? 5 : 4;
 
   right(ownerLabel,W-margin,y+30,28,"900");
   y+=58;
@@ -1172,8 +1271,9 @@ function exportTableImage(ownerFilter){
     wrapRight(p[1],colX[0]+colW[0]-10,y+13,colW[0]-18,18,"700");
     centerFit(faNum(q),colX[1]+colW[1]/2,y+rowH/2,colW[1]-14,21,"900");
     rightFit(faNum(sell),colX[2]+colW[2]-10,y+rowH/2,colW[2]-16,21,"900");
-    rightFit(faNum(itemCapital),colX[3]+colW[3]-10,y+rowH/2,colW[3]-16,21,"900");
-    rightFit(faNum(itemProfit),colX[4]+colW[4]-10,y+rowH/2,colW[4]-16,25,"900","#20262b");
+    if(hasPost) rightFit((Number(item.postage)||0) > 0 ? faNum(item.postage) : "—",colX[3]+colW[3]-10,y+rowH/2,colW[3]-16,21,"800","#2f5fa6");
+    rightFit(faNum(itemCapital),colX[iCap]+colW[iCap]-10,y+rowH/2,colW[iCap]-16,21,"900");
+    rightFit(faNum(itemProfit),colX[iProfit]+colW[iProfit]-10,y+rowH/2,colW[iProfit]-16,25,"900","#20262b");
     ctx.strokeStyle="#ebe7de"; ctx.lineWidth=1;
     ctx.strokeRect(margin,y,W-2*margin,rowH);
     y+=rowH;
@@ -1181,9 +1281,14 @@ function exportTableImage(ownerFilter){
 
   ctx.fillStyle="#f8f5ee"; ctx.fillRect(margin,y,W-2*margin,rowH);
   right("جمع",W-margin-14,y+rowH/2,21,"900");
-  rightFit(faNum(capital)+" تومان",colX[3]+colW[3]-10,y+rowH/2,colW[3]-16,20,"900");
-  rightFit(faNum(ownProfit)+" تومان",colX[4]+colW[4]-10,y+rowH/2,colW[4]-16,23,"900");
+  rightFit(faNum(capital)+" تومان",colX[iCap]+colW[iCap]-10,y+rowH/2,colW[iCap]-16,20,"900");
+  rightFit(faNum(ownProfit)+" تومان",colX[iProfit]+colW[iProfit]-10,y+rowH/2,colW[iProfit]-16,23,"900");
+  if(hasPost) rightFit(faNum(totalPost)+" تومان",colX[3]+colW[3]-10,y+rowH/2,colW[3]-16,18,"900","#2f5fa6");
   y+=rowH+28;
+  if(hasPost){
+    right("جمع هزینه پست (داخل سرمایه حساب شده): "+faNum(totalPost)+" تومان",W-margin,y,20,"800","#2f5fa6");
+    y+=40;
+  }
 
   // یک یادآوری کوچک در پایین
   right("واریز نهایی = سرمایه + سود نهایی",W-margin,y,18,"700","#555d66");
@@ -1240,6 +1345,7 @@ function exportCombinedImage(){
   const totalCapitalAll = active.reduce((s,o)=>s+calcByOwner[o].capital,0);
   const totalProfitAll = active.reduce((s,o)=>s+calcByOwner[o].ownProfit,0);
   const totalRevenueAll = totalCapitalAll + totalProfitAll;
+  const totalPostAll = items.reduce((sm,it)=> sm + (Number(it.qty)||0)*(Number(it.postage)||0), 0);
 
   const n = cols.length;
 
@@ -1329,6 +1435,7 @@ function exportCombinedImage(){
     : "فعلاً هیچ دو نفری با هم شراکتی نیستند — سود مال خود هرکس";
   center((invoiceName?("نام فاکتور: "+invoiceName+"   |   "):"")+modeTxt,W/2,y+62,18,"700","#555d66");
   centerFit("جمع کل فاکتور — سرمایه: "+faNum(totalCapitalAll)+" تومان   |   سود: "+faNum(totalProfitAll)+" تومان   |   فروش کل: "+faNum(totalRevenueAll)+" تومان",W/2,y+96,W-2*margin,18,"800","#20262b");
+  if(totalPostAll>0) centerFit("جمع هزینه پست (داخل سرمایه حساب شده): "+faNum(totalPostAll)+" تومان",W/2,y+126,W-2*margin,17,"800","#2f5fa6");
   y+=titleH;
 
   // ستون سمت راست = نفر اول، به ترتیب به سمت چپ ادامه پیدا می‌کنه
@@ -1370,7 +1477,13 @@ function exportCombinedImage(){
       row.nameLines.forEach(line=>{ ctx.fillText(line,nameX,ny); ny+=nameLineH; });
       ctx.restore();
       centerFit(faNum(q),tColX[1]+colW[1]/2,cy+rh/2,colW[1]-6,14,"900");
-      rightFit(faNum(buy),tColX[2]+colW[2]-7,cy+rh/2,colW[2]-12,12,"700","#7a7468");
+      const pst = Number(item.postage)||0;
+      if(pst>0){
+        rightFit(faNum(buy),tColX[2]+colW[2]-7,cy+rh/2-7,colW[2]-12,12,"700","#7a7468");
+        rightFit("پست "+faNum(pst),tColX[2]+colW[2]-7,cy+rh/2+9,colW[2]-12,10,"800","#2f5fa6");
+      } else {
+        rightFit(faNum(buy),tColX[2]+colW[2]-7,cy+rh/2,colW[2]-12,12,"700","#7a7468");
+      }
       rightFit(faNum(sell),tColX[3]+colW[3]-7,cy+rh/2,colW[3]-12,13,"800");
       rightFit(faNum(itemCapital),tColX[4]+colW[4]-7,cy+rh/2,colW[4]-12,13,"800");
       rightFit(faNum(itemProfit),tColX[5]+colW[5]-7,cy+rh/2,colW[5]-12,15,"900",accent.main);
@@ -1470,7 +1583,8 @@ function loadInvoiceFromFile(file){
         owner: OWNERS.includes(item.owner) ? item.owner : "ali",
         qty: Number(item.qty) || 0,
         salePrice: Number(item.salePrice) || 0,
-        purchasePrice: Number(item.purchasePrice) || 0
+        purchasePrice: Number(item.purchasePrice) || 0,
+        postage: Number(item.postage) || 0
       }));
 
       let ownerCount = [2,3,4].includes(data.ownerCount) ? data.ownerCount : 2;
@@ -1492,6 +1606,8 @@ function loadInvoiceFromFile(file){
         salePrices: data.salePrices || {},
         buyPrices: state.buyPrices || {},
         priceList: state.priceList,
+        postage: state.postage || {},
+        addPostage: state.addPostage,
         buyPricesByList: state.buyPricesByList || {},
         salePricesByList: state.salePricesByList || {},
         items: validItems,
@@ -1532,7 +1648,7 @@ document.getElementById("invoiceFile").addEventListener("change", (e)=>{
 
 document.getElementById('resetAll').addEventListener('click', ()=>{
   if(confirm('همه‌ی کالاهای اضافه‌شده و قیمت‌های ویرایش‌شده پاک بشه؟')){
-    state = {salePrices:{}, buyPrices:{}, buyPricesByList:{}, salePricesByList:{}, priceList: state.priceList, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, version: PRODUCTS_VERSION};
+    state = {salePrices:{}, buyPrices:{}, buyPricesByList:{}, salePricesByList:{}, postage: state.postage || {}, addPostage: state.addPostage, priceList: state.priceList, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, version: PRODUCTS_VERSION};
     saveState();
     activeCategory = 'همه';
     renderCategoryTabs();
