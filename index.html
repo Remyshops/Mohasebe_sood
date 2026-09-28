@@ -46,6 +46,10 @@
   }
   .owner-count-tabs button:hover{border-color:var(--ali);color:var(--ali);}
   .owner-count-tabs button.active{background:var(--ali);border-color:var(--ali);color:#fff;}
+  .pl-tabs{display:flex;gap:6px;}
+  .pl-tabs button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:0 14px;height:34px;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;}
+  .pl-tabs button:hover{border-color:var(--ali);color:var(--ali);}
+  .pl-tabs button.active{background:var(--ali);border-color:var(--ali);color:#fff;}
   .switch-label{display:flex;align-items:center;gap:8px;font-size:.83rem;cursor:pointer;user-select:none;font-weight:600;}
   .switch-label input{width:38px;height:20px;accent-color:var(--green);cursor:pointer;}
   .partnership-hint{font-size:.72rem;color:var(--ink-soft);flex-basis:100%;}
@@ -187,6 +191,10 @@
 
   <div class="settings-box">
     <div class="settings-row">
+      <label class="row-label">لیست قیمت خرید:</label>
+      <div class="pl-tabs" id="priceListTabs"></div>
+    </div>
+    <div class="settings-row">
       <label class="row-label">تعداد نفرات شریک:</label>
       <div class="owner-count-tabs" id="ownerCountTabs"></div>
     </div>
@@ -236,7 +244,7 @@
     <button class="btn" id="resetAll">پاک کردن همه چیز</button>
     <input id="invoiceFile" type="file" accept=".json,application/json" style="display:none">
   </div>
-  <div style="font-size:.66rem;color:#b3ac9d;text-align:left;margin-top:2px;">نسخه ابزار: 2026-09-22-r5 — تیک «سود شراکتی» جدا برای هر نفر (اگه این عدد رو تو صفحه‌تون نمی‌بینید، فایل قدیمیه)</div>
+  <div style="font-size:.66rem;color:#b3ac9d;text-align:left;margin-top:2px;">نسخه ابزار: 2026-09-28-r6 — انتخاب لیست قیمت تابستان / مهر ۱۴۰۵ + تیک «سود شراکتی» جدا برای هر نفر (اگه این عدد رو تو صفحه‌تون نمی‌بینید، فایل قدیمیه)</div>
 </div>
 
 <script>
@@ -315,6 +323,15 @@ const PRODUCTS = [
  ["-","نانو چرم کیف و کفش - با جعبه",177000,227000,"⚠ اعداد این ردیف در فایل اصلی نامرتب چاپ شده بود؛ لطفاً بررسی کنید"],
 ];
 
+// قیمت خرید مهر ۱۴۰۵ = قیمت خرید لیست PDF + ۳۰٬۰۰۰ تومان هزینه پست (به ترتیب همان آرایه PRODUCTS)
+const MEHR_POST = 30000;
+const MEHR_SALE = [246000,239000,238000,238000,232000,232000,237000,228000,258000,270000,261000,270000,246000,246000,246000,279000,211000,320000,204000,204000,285000,246000,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,252000,245000,245000,245000,null,null,null,null,null,586000,586000,281000,281000,281000,281000,281000,281000,260000,287000]; // قیمت فروش پیش‌فرض مهر ۱۴۰۵ (ستون «قیمت خرید» در فایل رمی‌شاپ)؛ null = بدون تغییر نسبت به لیست قبلی
+const MEHR_BUY = [161500,155000,153500,154500,150000,155000,153500,149500,173500,188000,167500,183500,167500,158000,137000,185500,131000,198000,152500,152500,222000,197000,1418000,2370000,2346000,1866000,2298000,1609800,1585000,1308700,2309500,990000,2190000,1346000,1398000,1268500,3630000,2910000,1135000,1027000,1005500,1016500,951500,1026500,1005500,1297000,1487500,1599500,1401000,1418000,1349000,167000,167000,167000,167000,135000,136000,134000,132500,131000,437500,437500,217500,217500,217500,217500,217500,217500,180000,206500];
+const PRICE_LISTS = {
+  summer: {label:"تابستان ۱۴۰۵", title:"لیست قیمت مرداد ۱۴۰۵"},
+  mehr:   {label:"مهر ۱۴۰۵",    title:"لیست قیمت مهر ۱۴۰۵ (با ۳۰ هزار پست)"}
+};
+
 const OWNERS = ['ali','maryam','p3','p4'];
 const OWNER_LABELS_FA = {2:'۲',3:'۳',4:'۴'};
 const OWNER_POS_FA = ['اول','دوم','سوم','چهارم'];
@@ -337,6 +354,17 @@ function saveState(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)
 let state = loadState();
 if(!state.salePrices) state.salePrices = {};
 if(!state.buyPrices) state.buyPrices = {};
+if(!state.priceList || !PRICE_LISTS[state.priceList]) state.priceList = "summer";
+if(!state.buyPricesByList || typeof state.buyPricesByList !== "object") state.buyPricesByList = {};
+if(!state.salePricesByList || typeof state.salePricesByList !== "object") state.salePricesByList = {};
+// همیشه با لیست «مهر ۱۴۰۵» باز شود (انتخاب تابستان ماندگار نیست)
+if(state.priceList !== "mehr"){
+  state.buyPricesByList[state.priceList] = state.buyPrices || {};
+  state.salePricesByList[state.priceList] = state.salePrices || {};
+  state.priceList = "mehr";
+  state.buyPrices = state.buyPricesByList.mehr || {};
+  state.salePrices = state.salePricesByList.mehr || {};
+}
 if(!state.items) state.items = [];
 if(!state.ownerNames || typeof state.ownerNames !== "object") state.ownerNames = {};
 if(![2,3,4].includes(state.ownerCount)) state.ownerCount = 2;
@@ -524,7 +552,7 @@ function updateOwnerNameDisplays(){
   const names = active.map(o=>ownerName(o));
   const setText = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
 
-  setText('subTitle', names.join('، ') + " — لیست قیمت مرداد ۱۴۰۵");
+  setText('subTitle', names.join('، ') + " — " + PRICE_LISTS[state.priceList].title);
   setText('catalogNote', "قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون یکی از نفرات اضافه‌ش کنید.");
 
   active.forEach(o=>{
@@ -546,6 +574,8 @@ if(state.version !== PRODUCTS_VERSION){
   // sale-price overrides so the new built-in prices actually show up.
   state.salePrices = {};
   state.buyPrices = {};
+  state.buyPricesByList = {};
+  state.salePricesByList = {};
   state.version = PRODUCTS_VERSION;
   saveState();
 }
@@ -558,12 +588,36 @@ function fmt(n){
 
 function getSalePrice(i){
   if(state.salePrices[i] !== undefined) return state.salePrices[i];
+  if(state.priceList === "mehr" && MEHR_SALE[i] !== null && MEHR_SALE[i] !== undefined) return MEHR_SALE[i];
   return PRODUCTS[i][3];
 }
 
 function getBuyPrice(i){
   if(state.buyPrices[i] !== undefined) return state.buyPrices[i];
-  return PRODUCTS[i][2];
+  return state.priceList === "mehr" ? MEHR_BUY[i] : PRODUCTS[i][2];
+}
+
+function setPriceList(key){
+  if(!PRICE_LISTS[key] || key === state.priceList) return;
+  // ویرایش‌های دستی قیمت خرید هر لیست جدا نگه‌داری می‌شود
+  state.buyPricesByList[state.priceList] = state.buyPrices || {};
+  state.salePricesByList[state.priceList] = state.salePrices || {};
+  state.priceList = key;
+  state.buyPrices = state.buyPricesByList[key] || {};
+  state.salePrices = state.salePricesByList[key] || {};
+  saveState();
+  fullRebuild();
+}
+
+function renderPriceListTabs(){
+  const box = document.getElementById('priceListTabs');
+  if(!box) return;
+  box.innerHTML = Object.keys(PRICE_LISTS).map(k=>
+    `<button type="button" class="${k===state.priceList?'active':''}" data-k="${k}">${PRICE_LISTS[k].label}</button>`
+  ).join('');
+  box.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=> setPriceList(btn.dataset.k));
+  });
 }
 
 const CATEGORY_ORDER = ["همه","محصولات خانگی","محصولات خودرو","محصولات صنعتی","خوشبوکننده","دستمال","عطر و ادکلن","چرم و کیف و کفش","سایر"];
@@ -613,7 +667,7 @@ function buildCatalog(){
     const tr = document.createElement('tr');
     const bp = getBuyPrice(i);
     const sp = getSalePrice(i);
-    const flag = p[4] ? `<div class="imeta" style="color:#a6423a">${p[4]}</div>` : "";
+    const flag = (p[4] && state.priceList !== "mehr") ? `<div class="imeta" style="color:#a6423a">${p[4]}</div>` : "";
 
     tr.innerHTML = `
       <td class="name">${p[1]}${flag}</td>
@@ -847,6 +901,7 @@ function renderColumns(){
 }
 
 function fullRebuild(){
+  renderPriceListTabs();
   renderOwnerCountTabs();
   buildOwnerNamesSkeleton();
   buildStatsSkeleton();
@@ -1436,6 +1491,9 @@ function loadInvoiceFromFile(file){
       state = {
         salePrices: data.salePrices || {},
         buyPrices: state.buyPrices || {},
+        priceList: state.priceList,
+        buyPricesByList: state.buyPricesByList || {},
+        salePricesByList: state.salePricesByList || {},
         items: validItems,
         invoiceName: String(data.invoiceName || ""),
         ownerNames: (data.ownerNames && typeof data.ownerNames === "object") ? data.ownerNames : (state.ownerNames || {}),
@@ -1474,7 +1532,7 @@ document.getElementById("invoiceFile").addEventListener("change", (e)=>{
 
 document.getElementById('resetAll').addEventListener('click', ()=>{
   if(confirm('همه‌ی کالاهای اضافه‌شده و قیمت‌های ویرایش‌شده پاک بشه؟')){
-    state = {salePrices:{}, buyPrices:{}, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, version: PRODUCTS_VERSION};
+    state = {salePrices:{}, buyPrices:{}, buyPricesByList:{}, salePricesByList:{}, priceList: state.priceList, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, version: PRODUCTS_VERSION};
     saveState();
     activeCategory = 'همه';
     renderCategoryTabs();
