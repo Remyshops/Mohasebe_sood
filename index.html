@@ -52,6 +52,8 @@
   .post-table th,.post-table td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line);}
   .post-table input{width:100px;border:1px solid #d9c98f;background:#fffdf7;border-radius:6px;padding:4px 6px;font-family:inherit;}
   .post-warn{color:#a6423a;font-size:.68rem;}
+  .post-row-tick{display:flex;align-items:center;gap:4px;font-size:.66rem;color:#2f5fa6;margin-top:3px;cursor:pointer;}
+  .post-row-tick input{width:auto;accent-color:#2f5fa6;}
   .pl-tabs{display:flex;gap:6px;}
   .pl-tabs button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:0 14px;height:34px;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;}
   .pl-tabs button:hover{border-color:var(--ali);color:var(--ali);}
@@ -366,7 +368,10 @@ function postageParams(g){
   return {qty, post};
 }
 function unitPostage(i){
-  if(!state.addPostage) return 0;
+  if(!state.addPostage || state.postageOff[i]) return 0;
+  return rawUnitPostage(i);
+}
+function rawUnitPostage(i){
   const g = postageGroupOf(i);
   if(!g) return 0;
   const p = postageParams(g);
@@ -405,6 +410,7 @@ if(!state.buyPricesByList || typeof state.buyPricesByList !== "object") state.bu
 if(!state.postage || typeof state.postage !== "object") state.postage = {};
 // تیک «محاسبه با هزینه پست» همیشه روشن باز می‌شود (بعد از باز شدن می‌شود خاموشش کرد)
 state.addPostage = true;
+if(!state.postageOff || typeof state.postageOff !== "object") state.postageOff = {};
 if(!state.salePricesByList || typeof state.salePricesByList !== "object") state.salePricesByList = {};
 // همیشه با لیست «مهر ۱۴۰۵» باز شود (انتخاب تابستان ماندگار نیست)
 if(state.priceList !== "mehr"){
@@ -763,7 +769,7 @@ function buildCatalog(){
 
     tr.innerHTML = `
       <td class="name">${p[1]}${flag}</td>
-      <td><input class="editable" type="number" min="0" data-role="buy" value="${bp!==null?bp:''}" placeholder="—">${appliedPostage(i)>0 ? `<div class="imeta" style="color:#2f5fa6">شامل پست: ${fmt(appliedPostage(i))}</div>` : ""}</td>
+      <td><input class="editable" type="number" min="0" data-role="buy" value="${bp!==null?bp:''}" placeholder="—">${state.priceList==="mehr" && postageGroupOf(i) ? `<label class="post-row-tick"><input type="checkbox" data-role="post" ${state.postageOff[i]?'':'checked'} ${state.addPostage?'':'disabled'}> پست</label><div class="imeta post-note" style="color:#2f5fa6">${appliedPostage(i)>0 ? 'شامل پست: '+fmt(appliedPostage(i)) : ''}</div>` : ""}</td>
       <td><input class="editable" type="number" min="0" data-role="sale" value="${sp!==null?sp:''}" placeholder="—"></td>
       <td><input class="editable" type="number" min="0" data-role="qty" placeholder="0" style="max-width:60px"></td>
       <td>
@@ -786,6 +792,22 @@ function buildCatalog(){
       state.buyPrices[i] = buyInput.value === "" ? null : parseFloat(buyInput.value);
       saveState();
     });
+
+    const postTick = tr.querySelector('[data-role="post"]');
+    if(postTick){
+      postTick.addEventListener('change', ()=>{
+        const raw = rawUnitPostage(i);
+        if(postTick.checked){ delete state.postageOff[i]; } else { state.postageOff[i] = true; }
+        // اگه قیمت خرید این کالا دستی ویرایش شده بود، همان مقدار پست را کم/زیاد می‌کنیم
+        if(typeof state.buyPrices[i] === "number"){
+          state.buyPrices[i] = Math.max(0, state.buyPrices[i] + (postTick.checked ? raw : -raw));
+        }
+        buyInput.value = getBuyPrice(i);
+        const note = tr.querySelector('.post-note');
+        if(note) note.textContent = appliedPostage(i)>0 ? ('شامل پست: '+fmt(appliedPostage(i))) : '';
+        saveState();
+      });
+    }
 
     tr.querySelector('[data-role="add"]').addEventListener('click', ()=>{
       const qty = parseFloat(tr.querySelector('[data-role="qty"]').value) || 0;
@@ -1608,6 +1630,7 @@ function loadInvoiceFromFile(file){
         priceList: state.priceList,
         postage: state.postage || {},
         addPostage: state.addPostage,
+        postageOff: state.postageOff || {},
         buyPricesByList: state.buyPricesByList || {},
         salePricesByList: state.salePricesByList || {},
         items: validItems,
@@ -1648,7 +1671,7 @@ document.getElementById("invoiceFile").addEventListener("change", (e)=>{
 
 document.getElementById('resetAll').addEventListener('click', ()=>{
   if(confirm('همه‌ی کالاهای اضافه‌شده و قیمت‌های ویرایش‌شده پاک بشه؟')){
-    state = {salePrices:{}, buyPrices:{}, buyPricesByList:{}, salePricesByList:{}, postage: state.postage || {}, addPostage: state.addPostage, priceList: state.priceList, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, version: PRODUCTS_VERSION};
+    state = {salePrices:{}, buyPrices:{}, buyPricesByList:{}, salePricesByList:{}, postage: state.postage || {}, addPostage: state.addPostage, postageOff: state.postageOff || {}, priceList: state.priceList, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, version: PRODUCTS_VERSION};
     saveState();
     activeCategory = 'همه';
     renderCategoryTabs();
