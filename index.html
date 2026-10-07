@@ -195,7 +195,7 @@
 <body>
 <div class="wrap">
   <h1>دفتر مشترک محصولات غیاث</h1>
-  <p class="sub" id="subTitle">سید علی محمد مدرسی و مریم مدرسی — لیست قیمت مرداد ۱۴۰۵</p>
+  <p class="sub" id="subTitle">نفر اول، نفر دوم — لیست قیمت مهر ۱۴۰۵</p>
 
   <div class="settings-box">
     <div class="settings-row">
@@ -231,6 +231,17 @@
     <input id="invoiceName" class="invoice-name-input" type="text" placeholder="مثلاً: فاکتور آقای احمدی">
   </div>
 
+  <div class="settings-box" id="priceTools">
+    <div class="settings-row">
+      <label class="row-label">قیمت‌ها در اکسل:</label>
+      <button class="btn" id="pxExport" style="border-color:var(--green);color:var(--green);font-weight:700;">📥 دانلود اکسل قیمت‌ها</button>
+      <button class="btn" id="pxImport">📤 لود قیمت‌ها از اکسل</button>
+      <button class="btn" id="pxReset">↩ برگشت به قیمت‌های پیش‌فرض</button>
+      <input id="pxFile" type="file" accept=".xlsx,.csv,.txt" style="display:none">
+    </div>
+    <div class="partnership-hint" id="pxStatus"></div>
+  </div>
+
   <h2>۱. لیست کالاها و قیمت‌ها</h2>
   <div class="note" id="catalogNote">قیمت خرید از لیست اصلیه؛ قیمت فروش رو می‌تونید ویرایش کنید (پیش‌فرض حداقل قیمت فروش بازار گذاشته شده). بعد تعداد رو بنویسید و با دکمه‌ی «افزودن» به ستون یکی از نفرات اضافه‌ش کنید.</div>
 
@@ -259,7 +270,7 @@
     <button class="btn" id="resetAll">پاک کردن همه چیز</button>
     <input id="invoiceFile" type="file" accept=".json,application/json" style="display:none">
   </div>
-  <div style="font-size:.66rem;color:#b3ac9d;text-align:left;margin-top:2px;">نسخه ابزار: 2026-09-28-r6 — انتخاب لیست قیمت تابستان / مهر ۱۴۰۵ + تیک «سود شراکتی» جدا برای هر نفر (اگه این عدد رو تو صفحه‌تون نمی‌بینید، فایل قدیمیه)</div>
+  <div style="font-size:.66rem;color:#b3ac9d;text-align:left;margin-top:2px;">نسخه ابزار: 2026-10-07-r7 (+ اکسل قیمت‌ها) — انتخاب لیست قیمت تابستان / مهر ۱۴۰۵ + تیک «سود شراکتی» جدا برای هر نفر (اگه این عدد رو تو صفحه‌تون نمی‌بینید، فایل قدیمیه)</div>
 </div>
 
 <script>
@@ -372,6 +383,7 @@ function unitPostage(i){
   return rawUnitPostage(i);
 }
 function rawUnitPostage(i){
+  if(state.postageUnit && state.postageUnit[i] !== undefined && state.postageUnit[i] !== null) return Math.round(Number(state.postageUnit[i])||0);
   const g = postageGroupOf(i);
   if(!g) return 0;
   const p = postageParams(g);
@@ -383,16 +395,17 @@ const PRICE_LISTS = {
   mehr:   {label:"مهر ۱۴۰۵",    title:"لیست قیمت مهر ۱۴۰۵"}
 };
 
-const OWNERS = ['ali','maryam','p3','p4'];
-const OWNER_LABELS_FA = {2:'۲',3:'۳',4:'۴'};
-const OWNER_POS_FA = ['اول','دوم','سوم','چهارم'];
+const OWNERS = ['ali','maryam','p3','p4','p5'];
+const OWNER_LABELS_FA = {1:'۱',2:'۲',3:'۳',4:'۴',5:'۵'};
+const OWNER_POS_FA = ['اول','دوم','سوم','چهارم','پنجم'];
 const OWNER_COLORS = {
   ali:   {main:'#0f3d3e', soft:'#e4efee'},
   maryam:{main:'#a6612e', soft:'#faeee0'},
   p3:    {main:'#2f5fa6', soft:'#e7eefb'},
-  p4:    {main:'#7a3fa0', soft:'#f2e9f7'}
+  p4:    {main:'#7a3fa0', soft:'#f2e9f7'},
+  p5:    {main:'#b03a5b', soft:'#fbe9ee'}
 };
-const DEFAULT_OWNER_NAMES = { ali: "سید علی محمد مدرسی", maryam: "مریم مدرسی", p3: "افسر خانم", p4: "نازنین" };
+const DEFAULT_OWNER_NAMES = { ali: "نفر اول", maryam: "نفر دوم", p3: "نفر سوم", p4: "نفر چهارم", p5: "نفر پنجم" };
 
 const STORE_KEY = "ghiyas_ledger_addflow_v1";
 const PRODUCTS_VERSION = "2026-09-11-4";
@@ -411,6 +424,7 @@ if(!state.postage || typeof state.postage !== "object") state.postage = {};
 // تیک «محاسبه با هزینه پست» همیشه روشن باز می‌شود (بعد از باز شدن می‌شود خاموشش کرد)
 state.addPostage = true;
 if(!state.postageOff || typeof state.postageOff !== "object") state.postageOff = {};
+if(!state.postageUnit || typeof state.postageUnit !== "object") state.postageUnit = {};
 if(!state.salePricesByList || typeof state.salePricesByList !== "object") state.salePricesByList = {};
 // همیشه با لیست «مهر ۱۴۰۵» باز شود (انتخاب تابستان ماندگار نیست)
 if(state.priceList !== "mehr"){
@@ -422,7 +436,7 @@ if(state.priceList !== "mehr"){
 }
 if(!state.items) state.items = [];
 if(!state.ownerNames || typeof state.ownerNames !== "object") state.ownerNames = {};
-if(![2,3,4].includes(state.ownerCount)) state.ownerCount = 2;
+if(![1,2,3,4,5].includes(state.ownerCount)) state.ownerCount = 2;
 if(!state.partnerFlags || typeof state.partnerFlags !== "object"){
   // سازگاری با فایل‌های قدیمی که فقط یک کلید «partnership» یکسان برای همه داشتند
   const legacy = typeof state.partnership === "boolean" ? state.partnership : true;
@@ -443,7 +457,7 @@ function ownerName(key){
 function renderOwnerCountTabs(){
   const box = document.getElementById('ownerCountTabs');
   if(!box) return;
-  box.innerHTML = [2,3,4].map(n=>
+  box.innerHTML = [1,2,3,4,5].map(n=>
     `<button type="button" class="${n===state.ownerCount?'active':''}" data-n="${n}">${OWNER_LABELS_FA[n]}</button>`
   ).join('');
   box.querySelectorAll('button').forEach(btn=>{
@@ -769,7 +783,7 @@ function buildCatalog(){
 
     tr.innerHTML = `
       <td class="name">${p[1]}${flag}</td>
-      <td><input class="editable" type="number" min="0" data-role="buy" value="${bp!==null?bp:''}" placeholder="—">${state.priceList==="mehr" && postageGroupOf(i) ? `<label class="post-row-tick"><input type="checkbox" data-role="post" ${state.postageOff[i]?'':'checked'} ${state.addPostage?'':'disabled'}> پست</label><div class="imeta post-note" style="color:#2f5fa6">${appliedPostage(i)>0 ? 'شامل پست: '+fmt(appliedPostage(i)) : ''}</div>` : ""}</td>
+      <td><input class="editable" type="number" min="0" data-role="buy" value="${bp!==null?bp:''}" placeholder="—">${state.priceList==="mehr" && (postageGroupOf(i) || PRODUCTS[i][5]) ? `<label class="post-row-tick"><input type="checkbox" data-role="post" ${state.postageOff[i]?'':'checked'} ${state.addPostage?'':'disabled'}> پست</label><div class="imeta post-note" style="color:#2f5fa6">${appliedPostage(i)>0 ? 'شامل پست: '+fmt(appliedPostage(i)) : ''}</div>` : ""}</td>
       <td><input class="editable" type="number" min="0" data-role="sale" value="${sp!==null?sp:''}" placeholder="—"></td>
       <td><input class="editable" type="number" min="0" data-role="qty" placeholder="0" style="max-width:60px"></td>
       <td>
@@ -855,7 +869,10 @@ function productCell(item, known){
   return top + `<div class="item-sub">
       <label>خرید</label>
       <input class="invoice-edit sub-buy" type="number" min="0" data-edit="buy" value="${Number(item.purchasePrice)||0}">
-    </div>` + (Number(item.postage)>0 ? `<div class="imeta" style="color:#2f5fa6">شامل پست هر عدد: ${fmt(Number(item.postage))}</div>` : "");
+    </div>` + `<div class="item-sub">
+      <label style="color:#2f5fa6">پست هر عدد</label>
+      <input class="invoice-edit sub-buy" type="number" min="0" data-edit="post" value="${Number(item.postage)||0}" title="هزینه پست داخل قیمت خرید حساب شده؛ برای حذف ۰ بزنید">
+    </div>`;
 }
 
 function renderColumns(){
@@ -917,6 +934,16 @@ function renderColumns(){
     if(buyEdit){
       buyEdit.addEventListener('change', ()=>{
         item.purchasePrice = Math.max(0, Number(buyEdit.value)||0);
+        saveState();
+        renderColumns();
+      });
+    }
+    const postEdit = tr.querySelector('[data-edit="post"]');
+    if(postEdit){
+      postEdit.addEventListener('change', ()=>{
+        const nv = Math.max(0, Number(postEdit.value)||0), old = Number(item.postage)||0;
+        item.purchasePrice = Math.max(0, (Number(item.purchasePrice)||0) - old + nv);
+        item.postage = nv;
         saveState();
         renderColumns();
       });
@@ -1213,7 +1240,7 @@ function exportTableImage(ownerFilter){
   ctx.fillStyle="#faf8f4";
   ctx.fillRect(0,0,W,logicalH);
 
-  function font(size,weight="600"){ ctx.font=`${weight} ${size}px Tahoma, Arial, sans-serif`; }
+  function font(size,weight="600"){ ctx.font=`${Math.min(+weight||600,800)} ${size}px Vazirmatn, Tahoma, Arial, sans-serif`; }
   function right(txt,x,y,size,weight="600",fill="#20262b"){
     ctx.save(); ctx.direction="rtl"; ctx.textAlign="right"; ctx.textBaseline="middle";
     font(size,weight); ctx.fillStyle=fill; ctx.fillText(String(txt),x,y); ctx.restore();
@@ -1372,18 +1399,18 @@ function exportCombinedImage(){
   const n = cols.length;
 
   // --- تنظیمات هندسی (عرض هر ستون بر اساس تعداد نفرات، تا ۴ ستون کنار هم جا بشه) ---
-  const margin=36, colGap=26, contentW = n>=4 ? 470 : (n===3 ? 540 : 610);
-  const colW = n>=4 ? [140,32,62,64,82,90] : (n===3 ? [160,36,70,72,92,100] : [190,42,82,84,100,112]);
-  const nameFontSize = n>=4 ? 13 : (n===3 ? 14 : 15);
-  const nameLineH = n>=4 ? 17 : (n===3 ? 18 : 20);
-  const rowVPad=18, minRowH = n>=4 ? 44 : 50;
-  const headH = n>=4 ? 40 : 46, ownerLabelH=58, summaryH = n>=4 ? 156 : 172, footerRowH = n>=4 ? 48 : 54;
+  const margin=36, colGap=26, contentW = n>=4 ? 600 : (n===3 ? 640 : 680);
+  const colW = n>=4 ? [150,40,84,90,106,130] : (n===3 ? [160,40,90,96,116,138] : [190,46,94,100,120,130]);
+  const nameFontSize = n>=4 ? 15 : (n===3 ? 16 : 17);
+  const nameLineH = n>=4 ? 20 : (n===3 ? 21 : 23);
+  const rowVPad=18, minRowH = n>=4 ? 56 : 60;
+  const headH = n>=4 ? 46 : 50, ownerLabelH=62, summaryH = 190, footerRowH = n>=4 ? 58 : 62;
   const gapAfterSummary=12, gapAfterHeader=6;
   const titleH=156, bottomMargin=40;
   const W = margin*2 + contentW*n + colGap*(n-1);
 
   const mctx = document.createElement("canvas").getContext("2d");
-  function mFont(size,weight="600"){ mctx.font = `${weight} ${size}px Tahoma, Arial, sans-serif`; }
+  function mFont(size,weight="600"){ mctx.font = `${Math.min(+weight||600,800)} ${size}px Vazirmatn, Tahoma, Arial, sans-serif`; }
   function wrapLines(txt,maxWidth,size,weight){
     mFont(size,weight);
     const words=String(txt).split(/\s+/);
@@ -1413,15 +1440,15 @@ function exportCombinedImage(){
   const bodyH = Math.max.apply(null, colHeights.concat([headH+minRowH+footerRowH]));
   const logicalH = titleH + bodyH + bottomMargin;
 
-  const SCALE=3;
+  const SCALE=Math.max(1,Math.min(3, 15000/W, 15000/logicalH, Math.sqrt(200e6/(W*logicalH))));
   const canvas=document.createElement("canvas");
-  canvas.width=W*SCALE; canvas.height=logicalH*SCALE;
+  canvas.width=Math.round(W*SCALE); canvas.height=Math.round(logicalH*SCALE);
   const ctx=canvas.getContext("2d");
   ctx.scale(SCALE,SCALE);
   ctx.fillStyle="#faf8f4";
   ctx.fillRect(0,0,W,logicalH);
 
-  function font(size,weight="600"){ ctx.font=`${weight} ${size}px Tahoma, Arial, sans-serif`; }
+  function font(size,weight="600"){ ctx.font=`${Math.min(+weight||600,800)} ${size}px Vazirmatn, Tahoma, Arial, sans-serif`; }
   function right(txt,x,y,size,weight="600",fill="#20262b"){
     ctx.save(); ctx.direction="rtl"; ctx.textAlign="right"; ctx.textBaseline="middle";
     font(size,weight); ctx.fillStyle=fill; ctx.fillText(String(txt),x,y); ctx.restore();
@@ -1468,22 +1495,22 @@ function exportCombinedImage(){
   function drawColumn(x, col){
     const {owner, label, calc, finalShare, finalPayable, prep, accent} = col;
     let cy=y;
-    right(label, x+contentW, cy+22, 22, "900", accent.main);
-    right(prep.rows.length+" قلم کالا", x+contentW, cy+44, 13, "700", "#8a8378");
+    right(label, x+contentW, cy+24, 26, "900", accent.main);
+    right(prep.rows.length+" قلم کالا", x+contentW, cy+50, 16, "700", "#8a8378");
     cy+=ownerLabelH;
 
     rounded(x,cy,contentW,summaryH,15,"#ffffff","#c9c2b7");
-    rightFit("سرمایه: "+faNum(calc.capital)+" تومان",x+contentW-20,cy+36,contentW-40,17,"700","#555d66");
-    rightFit((isPartner(owner)?"سود نهایی (سهم شراکتی): ":"سود نهایی (سود خودش): ")+faNum(finalShare)+" تومان",x+contentW-20,cy+74,contentW-40,17,"700","#555d66");
-    right("مبلغ واریزی نهایی",x+contentW-20,cy+108,18,"900","#20262b");
-    rightFit(faNum(finalPayable)+" تومان",x+contentW-20,cy+140,contentW-40,27,"900",accent.main);
+    rightFit("سرمایه: "+faNum(calc.capital)+" تومان",x+contentW-20,cy+38,contentW-40,20,"700","#555d66");
+    rightFit((isPartner(owner)?"سود نهایی (سهم شراکتی): ":"سود نهایی (سود خودش): ")+faNum(finalShare)+" تومان",x+contentW-20,cy+82,contentW-40,20,"700","#555d66");
+    right("مبلغ واریزی نهایی",x+contentW-20,cy+124,21,"900","#20262b");
+    rightFit(faNum(finalPayable)+" تومان",x+contentW-20,cy+162,contentW-40,32,"900",accent.main);
     cy+=summaryH+gapAfterSummary;
 
     const tColX=[]; let cursor=x+contentW;
     for(const w of colW){ cursor-=w; tColX.push(cursor); }
     const headers=["کالا","تعداد","خرید","فروش","سرمایه","سود"];
     rounded(x,cy,contentW,headH,8,"#f3f0e8","#ddd8cc");
-    headers.forEach((h,i)=>right(h,tColX[i]+colW[i]-7,cy+headH/2,13,"900","#515962"));
+    headers.forEach((h,i)=>right(h,tColX[i]+colW[i]-7,cy+headH/2,16,"900","#515962"));
     cy+=headH+gapAfterHeader;
 
     prep.rows.forEach((row,idx)=>{
@@ -1498,32 +1525,32 @@ function exportCombinedImage(){
       let ny=cy+(rh-row.nameLines.length*nameLineH)/2;
       row.nameLines.forEach(line=>{ ctx.fillText(line,nameX,ny); ny+=nameLineH; });
       ctx.restore();
-      centerFit(faNum(q),tColX[1]+colW[1]/2,cy+rh/2,colW[1]-6,14,"900");
+      centerFit(faNum(q),tColX[1]+colW[1]/2,cy+rh/2,colW[1]-4,19,"900");
       const pst = Number(item.postage)||0;
       if(pst>0){
-        rightFit(faNum(buy),tColX[2]+colW[2]-7,cy+rh/2-7,colW[2]-12,12,"700","#7a7468");
-        rightFit("پست "+faNum(pst),tColX[2]+colW[2]-7,cy+rh/2+9,colW[2]-12,10,"800","#2f5fa6");
+        rightFit(faNum(buy),tColX[2]+colW[2]-7,cy+rh/2-9,colW[2]-8,17,"700","#7a7468");
+        rightFit("پست "+faNum(pst),tColX[2]+colW[2]-7,cy+rh/2+12,colW[2]-8,13,"800","#2f5fa6");
       } else {
-        rightFit(faNum(buy),tColX[2]+colW[2]-7,cy+rh/2,colW[2]-12,12,"700","#7a7468");
+        rightFit(faNum(buy),tColX[2]+colW[2]-7,cy+rh/2,colW[2]-8,17,"700","#7a7468");
       }
-      rightFit(faNum(sell),tColX[3]+colW[3]-7,cy+rh/2,colW[3]-12,13,"800");
-      rightFit(faNum(itemCapital),tColX[4]+colW[4]-7,cy+rh/2,colW[4]-12,13,"800");
-      rightFit(faNum(itemProfit),tColX[5]+colW[5]-7,cy+rh/2,colW[5]-12,15,"900",accent.main);
+      rightFit(faNum(sell),tColX[3]+colW[3]-7,cy+rh/2,colW[3]-8,18,"800");
+      rightFit(faNum(itemCapital),tColX[4]+colW[4]-7,cy+rh/2,colW[4]-8,18,"800");
+      rightFit(faNum(itemProfit),tColX[5]+colW[5]-7,cy+rh/2,colW[5]-8,21,"900",accent.main);
       ctx.strokeStyle="#ebe7de"; ctx.lineWidth=1; ctx.strokeRect(x,cy,contentW,rh);
       cy+=rh;
     });
 
     if(prep.rows.length===0){
       ctx.fillStyle="#fbfaf7"; ctx.fillRect(x,cy,contentW,minRowH);
-      center("کالایی ثبت نشده",x+contentW/2,cy+minRowH/2,13,"600","#8a8378");
+      center("کالایی ثبت نشده",x+contentW/2,cy+minRowH/2,16,"600","#8a8378");
       cy+=minRowH;
     }
 
     ctx.fillStyle=accent.soft; ctx.fillRect(x,cy,contentW,footerRowH);
-    right("جمع",x+contentW-13,cy+footerRowH/2,16,"900");
-    centerFit(faNum(calc.totalQty),tColX[1]+colW[1]/2,cy+footerRowH/2,colW[1]-6,14,"900");
-    rightFit(faNum(calc.capital),tColX[4]+colW[4]-7,cy+footerRowH/2,colW[4]-12,14,"900");
-    rightFit(faNum(calc.ownProfit),tColX[5]+colW[5]-7,cy+footerRowH/2,colW[5]-12,16,"900",accent.main);
+    right("جمع",x+contentW-13,cy+footerRowH/2,19,"900");
+    centerFit(faNum(calc.totalQty),tColX[1]+colW[1]/2,cy+footerRowH/2,colW[1]-4,19,"900");
+    rightFit(faNum(calc.capital),tColX[4]+colW[4]-7,cy+footerRowH/2,colW[4]-8,19,"900");
+    rightFit(faNum(calc.ownProfit),tColX[5]+colW[5]-7,cy+footerRowH/2,colW[5]-8,22,"900",accent.main);
     ctx.strokeStyle="#ddd8cc"; ctx.lineWidth=1.5; ctx.strokeRect(x,cy,contentW,footerRowH);
   }
 
@@ -1564,6 +1591,7 @@ function saveInvoiceToFile(){
     partnerFlags: state.partnerFlags,
     ownerNames: state.ownerNames || {},
     salePrices: state.salePrices || {},
+    customProducts: state.customProducts || [],
     items: Array.isArray(state.items) ? state.items : []
   };
 
@@ -1588,6 +1616,7 @@ function loadInvoiceFromFile(file){
   reader.onload = ()=>{
     try{
       const data = JSON.parse(reader.result);
+      if(window.pxRemap) pxRemap(data);
 
       if(!data || !Array.isArray(data.items) || typeof data.salePrices !== "object"){
         throw new Error("invalid");
@@ -1609,7 +1638,7 @@ function loadInvoiceFromFile(file){
         postage: Number(item.postage) || 0
       }));
 
-      let ownerCount = [2,3,4].includes(data.ownerCount) ? data.ownerCount : 2;
+      let ownerCount = [1,2,3,4,5].includes(data.ownerCount) ? data.ownerCount : 2;
       const maxOwnerIdx = validItems.reduce((m,it)=>Math.max(m, OWNERS.indexOf(it.owner)), 0);
       ownerCount = Math.max(ownerCount, maxOwnerIdx+1);
 
@@ -1631,6 +1660,7 @@ function loadInvoiceFromFile(file){
         postage: state.postage || {},
         addPostage: state.addPostage,
         postageOff: state.postageOff || {},
+        postageUnit: state.postageUnit || {},
         buyPricesByList: state.buyPricesByList || {},
         salePricesByList: state.salePricesByList || {},
         items: validItems,
@@ -1638,6 +1668,7 @@ function loadInvoiceFromFile(file){
         ownerNames: (data.ownerNames && typeof data.ownerNames === "object") ? data.ownerNames : (state.ownerNames || {}),
         ownerCount: ownerCount,
         partnerFlags: partnerFlags,
+        customProducts: state.customProducts || [],
         version: PRODUCTS_VERSION
       };
 
@@ -1671,7 +1702,7 @@ document.getElementById("invoiceFile").addEventListener("change", (e)=>{
 
 document.getElementById('resetAll').addEventListener('click', ()=>{
   if(confirm('همه‌ی کالاهای اضافه‌شده و قیمت‌های ویرایش‌شده پاک بشه؟')){
-    state = {salePrices:{}, buyPrices:{}, buyPricesByList:{}, salePricesByList:{}, postage: state.postage || {}, addPostage: state.addPostage, postageOff: state.postageOff || {}, priceList: state.priceList, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, version: PRODUCTS_VERSION};
+    state = {salePrices:{}, buyPrices:{}, buyPricesByList:{}, salePricesByList:{}, postage: state.postage || {}, addPostage: state.addPostage, postageOff: state.postageOff || {}, postageUnit: state.postageUnit || {}, priceList: state.priceList, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, customProducts: state.customProducts || [], version: PRODUCTS_VERSION};
     saveState();
     activeCategory = 'همه';
     renderCategoryTabs();
@@ -1680,5 +1711,258 @@ document.getElementById('resetAll').addEventListener('click', ()=>{
 });
 
 </script>
+<script>
+/* ===== خروجی/ورودی اکسل قیمت‌ها (بدون کتابخانه‌ی خارجی) ===== */
+(function(){
+const $=id=>document.getElementById(id);
+const enc=new TextEncoder();
+const mehr=()=>state.priceList==="mehr";
+const HINT="اکسل را دانلود کنید، ستون‌های زرد «قیمت خرید» (بدون پست)، «هزینه پست هر عدد» و «قیمت فروش» را عوض کنید، ذخیره کنید و همین‌جا لود کنید. قیمت نهایی خرید = قیمت خرید + هزینه پست (با تیک «محاسبه با هزینه پست»). قیمت‌ها روی همین مرورگر می‌ماند. برای کالای جدید، ته جدول یک ردیف تازه با نام کالا، قیمت خرید و قیمت فروش اضافه کنید.";
+
+const BASE=PRODUCTS.length;
+function addCustom(name,buy,sale,persist){
+  const i=PRODUCTS.length;
+  PRODUCTS.push(["-",name,buy,sale,"",true]);MEHR_BASE.push(buy);MEHR_SALE.push(sale);
+  if(persist!==false)(state.customProducts=state.customProducts||[]).push({name:name,buy:buy,sale:sale});
+  try{_pIdx=null;}catch(e){}
+  return i;
+}
+/* هنگام لود فاکتور: شماره‌ی کالاهای اضافه‌شده را با لیست این دستگاه هماهنگ می‌کند */
+window.pxRemap=function(data){
+  if(!data||typeof data!=='object')return;
+  const map={};
+  (Array.isArray(data.customProducts)?data.customProducts:[]).forEach((c,k)=>{
+    if(!c||!c.name)return;
+    let i=PRODUCTS.findIndex((p,j)=>j>=BASE&&key(p[1])===key(c.name));
+    if(i<0)i=addCustom(String(c.name),Number(c.buy)||0,Number(c.sale)||0);
+    map[BASE+k]=i;
+  });
+  if(Array.isArray(data.items))data.items.forEach(it=>{
+    if(it&&Number.isInteger(it.productIndex)&&it.productIndex>=BASE)it.productIndex=(map[it.productIndex]!==undefined)?map[it.productIndex]:-2;
+  });
+  if(data.salePrices&&typeof data.salePrices==='object'){
+    const sp={};
+    Object.keys(data.salePrices).forEach(k=>{const n=Number(k);if(n>=BASE){if(map[n]!==undefined)sp[map[n]]=data.salePrices[k];}else sp[k]=data.salePrices[k];});
+    data.salePrices=sp;
+  }
+};
+function defBuy(i){return mehr()?MEHR_BASE[i]+(state.addPostage?rawUnitPostage(i):0):PRODUCTS[i][2];}
+function defSale(i){return (mehr()&&MEHR_SALE[i]!=null)?MEHR_SALE[i]:PRODUCTS[i][3];}
+const key=s=>String(s==null?'':s).replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[\s\u200b-\u200f\u2060\ufeff]+/g,'').toLowerCase();
+function num(v){
+  if(v===''||v==null)return undefined;
+  if(typeof v==='number')return(isFinite(v)&&v>=0)?Math.round(v):NaN;
+  const s=String(v).replace(/[۰-۹]/g,d=>d.charCodeAt(0)-1776).replace(/[٠-٩]/g,d=>d.charCodeAt(0)-1632).replace(/[,٬،\s]|تومان/g,'');
+  if(s==='')return undefined;
+  const n=Number(s);return(isFinite(n)&&n>=0)?Math.round(n):NaN;
+}
+
+/* ---------- ساخت xlsx (zip بدون فشرده‌سازی) ---------- */
+const CT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+const crc=u=>{let c=-1;for(let i=0;i<u.length;i++)c=CT[(c^u[i])&255]^(c>>>8);return(~c)>>>0;};
+function zip(files){
+  const parts=[],cd=[];let off=0;const d=new Date();
+  const dt=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate(),tm=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1);
+  files.forEach(([name,data])=>{
+    const nb=enc.encode(name),c=crc(data),L=data.length;
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(10,tm,true);lh.setUint16(12,dt,true);
+    lh.setUint32(14,c,true);lh.setUint32(18,L,true);lh.setUint32(22,L,true);lh.setUint16(26,nb.length,true);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(12,tm,true);ch.setUint16(14,dt,true);
+    ch.setUint32(16,c,true);ch.setUint32(20,L,true);ch.setUint32(24,L,true);ch.setUint16(28,nb.length,true);ch.setUint32(42,off,true);
+    parts.push(new Uint8Array(lh.buffer),nb,data);cd.push(new Uint8Array(ch.buffer),nb);
+    off+=30+nb.length+L;
+  });
+  const cdSize=cd.reduce((s,a)=>s+a.length,0),e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdSize,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cd,new Uint8Array(e.buffer)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+const X=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function exportXlsx(){
+  const rows=[["ردیف","کد","نام کالا","قیمت خرید (تومان، بدون پست)","هزینه پست هر عدد (تومان)","قیمت فروش (تومان)"]];
+  PRODUCTS.forEach((p,i)=>{
+    const bp=getBuyPrice(i);
+    rows.push([i+1,p[0],p[1],bp===null||bp===undefined?null:Math.max(0,bp-appliedPostage(i)),mehr()?rawUnitPostage(i):null,getSalePrice(i)]);
+  });
+  const sd=rows.map((r,ri)=>'<row r="'+(ri+1)+'">'+r.map((v,ci)=>{
+    const ref="ABCDEF"[ci]+(ri+1),st=ri===0?1:(ci>=3?2:0);
+    if(v===null||v===undefined||v==='')return '<c r="'+ref+'" s="'+st+'"/>';
+    return typeof v==='number'?'<c r="'+ref+'" s="'+st+'"><v>'+v+'</v></c>':'<c r="'+ref+'" s="'+st+'" t="inlineStr"><is><t>'+X(v)+'</t></is></c>';
+  }).join('')+'</row>').join('');
+  const NS='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"',H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',RN='http://schemas.openxmlformats.org/package/2006/relationships',OD='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const files=[
+    ["[Content_Types].xml",H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+    ["_rels/.rels",H+'<Relationships xmlns="'+RN+'"><Relationship Id="rId1" Type="'+OD+'/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ["xl/workbook.xml",H+'<workbook '+NS+' xmlns:r="'+OD+'"><sheets><sheet name="قیمت‌ها" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+    ["xl/_rels/workbook.xml.rels",H+'<Relationships xmlns="'+RN+'"><Relationship Id="rId1" Type="'+OD+'/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="'+OD+'/styles" Target="styles.xml"/></Relationships>'],
+    ["xl/styles.xml",H+'<styleSheet '+NS+'><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE4EFEE"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="3" fontId="0" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1"/></cellXfs></styleSheet>'],
+    ["xl/worksheets/sheet1.xml",H+'<worksheet '+NS+'><sheetViews><sheetView rightToLeft="1" workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="2" width="8" customWidth="1"/><col min="3" max="3" width="55" customWidth="1"/><col min="4" max="6" width="22" customWidth="1"/></cols><sheetData>'+sd+'</sheetData></worksheet>']
+  ].map(([n,t])=>[n,enc.encode(t)]);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(zip(files));
+  a.download='قیمت‌ها_'+PRICE_LISTS[state.priceList].label.replace(/\s+/g,'_')+'.xlsx';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+
+/* ---------- خواندن xlsx ---------- */
+async function unzip(buf){
+  const u=new Uint8Array(buf),dv=new DataView(buf),out={};
+  let e=u.length-22;while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;
+  if(e<0)throw new Error('zip');
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);
+  for(let k=0;k<n;k++){
+    const meth=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(u.subarray(p+46,p+46+nl));
+    const ds=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true);
+    out[name]={meth,data:u.subarray(ds,ds+cs)};
+    p+=46+nl+xl+cl;
+  }
+  return out;
+}
+async function entryText(en){
+  let d=en.data;
+  if(en.meth===8){
+    if(typeof DecompressionStream==='undefined')throw new Error('nods');
+    d=new Uint8Array(await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+  }
+  return new TextDecoder().decode(d);
+}
+async function xlsxSheets(buf){
+  const z=await unzip(buf),P=s=>new DOMParser().parseFromString(s,'application/xml');
+  const tn=(el,n)=>Array.from(el.getElementsByTagNameNS('*',n));
+  let ss=[];
+  if(z['xl/sharedStrings.xml'])ss=tn(P(await entryText(z['xl/sharedStrings.xml'])),'si').map(si=>tn(si,'t').filter(t=>t.parentNode.localName!=='rPh').map(t=>t.textContent).join(''));
+  const names=Object.keys(z).filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort((a,b)=>parseInt(a.match(/\d+/)[0])-parseInt(b.match(/\d+/)[0]));
+  const sheets=[];
+  for(const nm of names){
+    const doc=P(await entryText(z[nm])),rows=[];
+    tn(doc,'row').forEach(r=>{
+      const arr=[];
+      tn(r,'c').forEach(c=>{
+        const m=(c.getAttribute('r')||'').match(/^([A-Z]+)/);
+        let ci=arr.length;
+        if(m){ci=0;for(const ch of m[1])ci=ci*26+ch.charCodeAt(0)-64;ci--;}
+        const t=c.getAttribute('t'),v=tn(c,'v')[0],val=v?v.textContent:'';
+        arr[ci]=t==='s'?(ss[Number(val)]||''):t==='inlineStr'?tn(c,'t').map(q=>q.textContent).join(''):(t==='str'||t==='e'||t==='b')?val:(val===''?'':Number(val));
+      });
+      rows.push(arr);
+    });
+    sheets.push(rows);
+  }
+  return sheets;
+}
+function csvRows(txt){
+  txt=txt.replace(/^\ufeff/,'');
+  const first=txt.split('\n')[0],d=[',',';','\t'].sort((a,b)=>first.split(b).length-first.split(a).length)[0];
+  const rows=[];let r=[],f='',q=false;
+  for(let i=0;i<txt.length;i++){
+    const c=txt[i];
+    if(q){if(c==='"'){if(txt[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
+    else if(c==='"')q=true;
+    else if(c===d){r.push(f);f='';}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&txt[i+1]==='\n')i++;r.push(f);f='';rows.push(r);r=[];}
+    else f+=c;
+  }
+  r.push(f);rows.push(r);return rows;
+}
+
+/* ---------- اعمال قیمت‌ها ---------- */
+function findTable(rows){
+  for(let h=0;h<Math.min(rows.length,30);h++){
+    const r=Array.from(rows[h]||[],v=>key(v));
+    const n=r.findIndex(x=>x.includes('نامکالا')),b=r.findIndex(x=>x.includes('قیمتخرید')),s=r.findIndex(x=>x.includes('قیمتفروش')),pc=r.findIndex(x=>x.includes('هزینهپست'));
+    if(n>=0&&(b>=0||s>=0))return{h,n,b,s,p:pc};
+  }
+  return null;
+}
+function applyRows(rows){
+  const T=findTable(rows);if(!T)throw new Error('hdr');
+  const idx=new Map();PRODUCTS.forEach((p,i)=>{const k=key(p[1]);if(!idx.has(k))idx.set(k,i);});
+  const M=mehr();let nb=0,ns=0,na=0,np=0;const bad=[],miss=[];
+  for(let r=T.h+1;r<rows.length;r++){
+    const row=rows[r]||[],nm=row[T.n];
+    if(nm===undefined||nm==='')continue;
+    let i=idx.get(key(nm));
+    if(i===undefined){
+      const b=T.b>=0?num(row[T.b]):undefined,sv=T.s>=0?num(row[T.s]):undefined;
+      if(typeof b==='number'&&typeof sv==='number'&&!Number.isNaN(b)&&!Number.isNaN(sv)){i=addCustom(String(nm).trim(),b,sv);idx.set(key(nm),i);na++;}
+      else{miss.push(String(nm));continue;}
+    }
+    if(T.p>=0&&M){
+      const pv=num(row[T.p]);
+      if(Number.isNaN(pv))bad.push(nm);
+      else if(pv!==undefined){
+        np++;delete state.postageUnit[i];
+        if(pv!==rawUnitPostage(i))state.postageUnit[i]=pv;
+      }
+    }
+    if(T.b>=0){
+      const v=num(row[T.b]);
+      if(Number.isNaN(v))bad.push(nm);
+      else if(v!==undefined){
+        nb++;
+        if(T.p>=0){
+          /* قالب جدید: قیمت خرید بدون پست است؛ پست جدا اضافه می‌شود */
+          if(v===(M?MEHR_BASE[i]:PRODUCTS[i][2]))delete state.buyPrices[i];
+          else state.buyPrices[i]=v+appliedPostage(i);
+        }else if(v===defBuy(i)){delete state.buyPrices[i];if(M)delete state.postageOff[i];}
+        else{state.buyPrices[i]=v;if(M&&postageGroupOf(i))state.postageOff[i]=true;}
+      }
+    }
+    if(T.s>=0){
+      const v=num(row[T.s]);
+      if(Number.isNaN(v))bad.push(nm);
+      else if(v!==undefined){ns++;if(v===defSale(i))delete state.salePrices[i];else state.salePrices[i]=v;}
+    }
+  }
+  saveState();buildCatalog();
+  alert('قیمت‌ها لود شد ('+PRICE_LISTS[state.priceList].label+'):\n'+nb+' قیمت خرید و '+ns+' قیمت فروش خوانده شد.'+(np?'\n'+np+' هزینه پست خوانده شد.':'')+(na?'\n✚ '+na+' کالای جدید اضافه شد (در دسته‌ی «سایر»).':'')
+    +(miss.length?'\n⚠ '+miss.length+' ردیف رد شد (نام کالا ناشناخته است و برای کالای جدید هر دو قیمت خرید و فروش لازم است): '+miss.slice(0,5).join('، '):'')
+    +(bad.length?'\n⚠ عدد نامعتبر در: '+bad.slice(0,5).join('، '):'')
+    +'\nکالاهایی که قبلاً به ستون‌ها اضافه کرده‌اید با قیمت قبلی می‌مانند.');
+}
+async function loadFile(f){
+  if(!f)return;
+  try{
+    let rows;
+    if(/\.(csv|txt)$/i.test(f.name)){
+      const b=await f.arrayBuffer();let t;
+      try{t=new TextDecoder('utf-8',{fatal:true}).decode(b);}catch(e){t=new TextDecoder('windows-1256').decode(b);}
+      rows=csvRows(t);
+    }else{
+      rows=(await xlsxSheets(await f.arrayBuffer())).find(s=>findTable(s));
+      if(!rows)throw new Error('hdr');
+    }
+    applyRows(rows);
+  }catch(e){
+    alert(e.message==='hdr'?'ستون‌های «نام کالا»، «قیمت خرید» و «قیمت فروش» پیدا نشد. فایل را از دکمه‌ی «دانلود اکسل قیمت‌ها» همین صفحه بگیرید.'
+      :e.message==='nods'?'این مرورگر نمی‌تواند xlsx را مستقیم بخواند. در اکسل «Save As ← CSV UTF-8» بزنید و فایل CSV را لود کنید.'
+      :'فایل خوانده نشد. فقط xlsx یا csv پشتیبانی می‌شود (اگر xls قدیمی است، با Save As به xlsx تبدیل کنید).');
+  }
+}
+
+/* ---------- وضعیت و دکمه‌ها ---------- */
+function upd(){
+  const el=$('pxStatus');if(!el)return;
+  const b=Object.keys(state.buyPrices||{}).length,s=Object.keys(state.salePrices||{}).length;
+  el.textContent=(b||s?'قیمت‌های تغییرکرده: '+b+' خرید، '+s+' فروش — ':'همه‌ی قیمت‌ها پیش‌فرض است — ')+HINT;
+}
+const _bc=buildCatalog;
+buildCatalog=function(){_bc();upd();};
+$('catalogBody').addEventListener('input',upd);
+$('pxExport').onclick=exportXlsx;
+$('pxImport').onclick=()=>$('pxFile').click();
+$('pxFile').onchange=e=>{loadFile(e.target.files[0]);e.target.value='';};
+$('pxReset').onclick=()=>{
+  if(!confirm('همه‌ی قیمت‌های خرید و فروش ویرایش‌شده به پیش‌فرض برگردد؟ (کالاهای اضافه‌شده تغییر نمی‌کنند)'))return;
+  state.buyPrices={};state.salePrices={};state.postageOff={};state.postageUnit={};saveState();buildCatalog();
+};
+try{(state.customProducts||[]).forEach(c=>{if(c&&c.name&&!PRODUCTS.some(p=>key(p[1])===key(c.name)))addCustom(String(c.name),Number(c.buy)||0,Number(c.sale)||0,false);});}catch(e){}
+buildCatalog();renderColumns();
+})();
+</script>
+<script>try{["500","600","700","800"].forEach(function(w){document.fonts.load(w+" 20px Vazirmatn","۰۱۲۳۴۵۶۷۸۹ کالا");});}catch(e){}</script>
 </body>
 </html>
