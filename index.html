@@ -445,8 +445,36 @@ if(!state.partnerFlags || typeof state.partnerFlags !== "object"){
 }
 OWNERS.forEach(o=>{ if(typeof state.partnerFlags[o] !== "boolean") state.partnerFlags[o] = true; });
 
+if(!state.fixedFlags || typeof state.fixedFlags !== "object") state.fixedFlags = {};
+if(!state.fixedAmounts || typeof state.fixedAmounts !== "object") state.fixedAmounts = {};
+
 function activeOwners(){ return OWNERS.slice(0, state.ownerCount); }
-function isPartner(key){ return !!state.partnerFlags[key]; }
+function isFixed(key){ return !!(state.fixedFlags && state.fixedFlags[key]); }
+function fixedAmt(key){ const v = Number(state.fixedAmounts && state.fixedAmounts[key]); return (isFinite(v) && v >= 0 && state.fixedAmounts[key] !== undefined && state.fixedAmounts[key] !== "") ? v : 50000; }
+// نفرِ «سود ثابت» شریک حساب نمی‌شود؛ فقط مبلغ ثابت به‌ازای هر عدد می‌گیرد و بقیه‌ی سودِ کالاهایش می‌رود توی سود شرکا
+function isPartner(key){ return !!state.partnerFlags[key] && !isFixed(key); }
+// تقسیم سود یک ردیف: بخش ثابت = کمترِ (تعداد × مبلغ ثابت) و (سود ردیف)؛ اگر سود ردیف منفی باشد بخش ثابت صفر است
+function fixedSplit(o, q, profit){
+  if(!isFixed(o)) return {fixed: profit, extra: 0};
+  const f = Math.max(0, Math.min(q * fixedAmt(o), profit));
+  return {fixed: f, extra: profit - f};
+}
+// profitBy[o] = سود واقعی کالاهای آن نفر، fixedBy[o] = بخش ثابت (فقط برای نفرات سود ثابت)
+function computeShares(active, profitBy, fixedBy){
+  const partners = active.filter(o=>isPartner(o));
+  const fixedOwners = active.filter(o=>isFixed(o));
+  const pCount = partners.length;
+  const extra = fixedOwners.reduce((s,o)=>s + (profitBy[o]||0) - (fixedBy[o]||0), 0);
+  const pooled = partners.reduce((s,o)=>s + (profitBy[o]||0), 0) + (pCount ? extra : 0);
+  const each = pCount ? pooled / pCount : 0;
+  const final = {};
+  active.forEach(o=>{
+    if(isFixed(o)) final[o] = pCount ? (fixedBy[o]||0) : (profitBy[o]||0);
+    else if(isPartner(o) && pCount) final[o] = each;
+    else final[o] = profitBy[o]||0;
+  });
+  return {partners, pCount, pooled, each, final};
+}
 function ownerAccent(key){ return OWNER_COLORS[key] || {main:'#333333', soft:'#eeeeee'}; }
 
 function ownerName(key){
@@ -493,11 +521,16 @@ function updatePartnershipHint(){
   if(!hint) return;
   const active = activeOwners();
   const partners = active.filter(o=>isPartner(o));
-  const solo = active.filter(o=>!isPartner(o));
+  const solo = active.filter(o=>!isPartner(o) && !isFixed(o));
+  const fixedList = active.filter(o=>isFixed(o));
   const partnerNames = partners.map(ownerName).join('، ');
   const soloNames = solo.map(ownerName).join('، ');
 
-  if(partners.length >= 2 && solo.length === 0){
+  if(fixedList.length && partners.length){
+    hint.textContent = fixedList.map(o=>ownerName(o)+' ('+Number(fixedAmt(o)).toLocaleString('fa-IR')+' تومان به‌ازای هر عدد)').join('، ') + ' فقط سود ثابت می‌گیرند؛ بقیه‌ی سود کالاهایشان بین ' + partnerNames + ' تقسیم می‌شود.' + (solo.length ? ' سود ' + soloNames + ' مال خودشان می‌ماند.' : '');
+  } else if(fixedList.length && !partners.length){
+    hint.textContent = 'نفرات «سود ثابت» هستند ولی هیچ شریکی تیک نخورده؛ تا شریکی تیک نخورد، کل سود هر نفر مال خودش می‌ماند.';
+  } else if(partners.length >= 2 && solo.length === 0){
     hint.textContent = 'سود کل بین ' + partnerNames + ' به‌طور مساوی تقسیم می‌شود.';
   } else if(partners.length >= 2 && solo.length > 0){
     hint.textContent = 'سود ' + partnerNames + ' با هم شراکتی و مساوی تقسیم می‌شود؛ سود ' + soloNames + ' مال خودشان می‌ماند.';
@@ -520,6 +553,14 @@ function buildOwnerNamesSkeleton(){
         <input type="checkbox" id="ownerPartner_${o}">
         <span>سود شراکتی (تیک بزنید تا سودش با بقیه‌ی تیک‌خورده‌ها تقسیم شود)</span>
       </label>
+      <label class="owner-partner-check" for="ownerFixed_${o}">
+        <input type="checkbox" id="ownerFixed_${o}">
+        <span>سود ثابت (فقط مبلغ ثابت به‌ازای هر عدد؛ بقیه‌ی سود بین شرکا تقسیم شود)</span>
+      </label>
+      <div id="ownerFixedBox_${o}" style="display:none;margin-top:4px;">
+        <label for="ownerFixedAmt_${o}" style="font-size:.74rem;font-weight:600;">سود ثابت هر عدد (تومان)</label>
+        <input id="ownerFixedAmt_${o}" type="text" inputmode="numeric" placeholder="۵۰٬۰۰۰">
+      </div>
     </div>`
   ).join('') + `<div class="hint">این اسم‌ها و تیک‌ها فقط روی همین دستگاه/مرورگر ذخیره می‌شن. اگر تیک نزنید، سود همون نفر فقط مال خودش می‌مونه و با بقیه تقسیم نمی‌شه.</div>`;
 
@@ -540,10 +581,44 @@ function buildOwnerNamesSkeleton(){
       check.checked = isPartner(o);
       check.addEventListener('change', ()=>{
         state.partnerFlags[o] = check.checked;
+        if(check.checked && state.fixedFlags[o]){
+          state.fixedFlags[o] = false;
+          const fc = document.getElementById('ownerFixed_'+o); if(fc) fc.checked = false;
+          const fb = document.getElementById('ownerFixedBox_'+o); if(fb) fb.style.display = 'none';
+        }
         saveState();
         updatePartnershipHint();
         renderColumns();
       });
+    }
+    const fixedCheck = document.getElementById('ownerFixed_'+o);
+    const fixedBox = document.getElementById('ownerFixedBox_'+o);
+    const fixedInput = document.getElementById('ownerFixedAmt_'+o);
+    const toEn = t => String(t).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^0-9]/g,'');
+    if(fixedCheck){
+      fixedCheck.checked = isFixed(o);
+      if(fixedBox) fixedBox.style.display = isFixed(o) ? '' : 'none';
+      if(fixedInput) fixedInput.value = Number(fixedAmt(o)).toLocaleString('fa-IR');
+      fixedCheck.addEventListener('change', ()=>{
+        state.fixedFlags[o] = fixedCheck.checked;
+        if(fixedBox) fixedBox.style.display = fixedCheck.checked ? '' : 'none';
+        if(fixedCheck.checked){
+          const pc = document.getElementById('ownerPartner_'+o); if(pc) pc.checked = false;
+        } else if(state.partnerFlags[o] === false){ /* بدون تغییر */ }
+        saveState();
+        updatePartnershipHint();
+        renderColumns();
+      });
+    }
+    if(fixedInput){
+      fixedInput.addEventListener('input', ()=>{
+        const digits = toEn(fixedInput.value);
+        state.fixedAmounts[o] = digits === '' ? '' : Number(digits);
+        saveState();
+        updatePartnershipHint();
+        renderColumns();
+      });
+      fixedInput.addEventListener('blur', ()=>{ fixedInput.value = Number(fixedAmt(o)).toLocaleString('fa-IR'); });
     }
   });
 }
@@ -879,7 +954,7 @@ function renderColumns(){
   const active = activeOwners();
   const data = {};
   active.forEach(o=>{
-    data[o] = {capital:0, ownProfit:0, count:0};
+    data[o] = {capital:0, ownProfit:0, fixedPart:0, count:0};
     const listEl = document.getElementById('list_'+o);
     if(listEl) listEl.innerHTML = "";
   });
@@ -973,6 +1048,7 @@ function renderColumns(){
     data[owner].count += qty;
     data[owner].capital += cost;
     data[owner].ownProfit += profit;
+    data[owner].fixedPart += fixedSplit(owner, qty, profit).fixed;
   });
 
   const emptyRow = `<tr><td colspan="6" class="empty-msg">هنوز کالایی اضافه نشده</td></tr>`;
@@ -992,13 +1068,17 @@ function renderColumns(){
   const totalProfit = active.reduce((s,o)=>s+data[o].ownProfit,0);
   const n = active.length;
 
-  const partners = active.filter(o=>isPartner(o));
-  const pooledProfit = partners.reduce((s,o)=>s+data[o].ownProfit,0);
-  const pCount = partners.length;
-  const eachShare = pCount ? pooledProfit / pCount : 0;
+  const _pb = {}, _fb = {};
+  active.forEach(o=>{ _pb[o] = data[o].ownProfit; _fb[o] = data[o].fixedPart; });
+  const sh = computeShares(active, _pb, _fb);
+  const partners = sh.partners;
+  const pooledProfit = sh.pooled;
+  const pCount = sh.pCount;
+  const eachShare = sh.each;
+  const sharing = pCount >= 2 || (pCount >= 1 && active.some(o=>isFixed(o)));
 
   active.forEach(o=>{
-    const finalShare = isPartner(o) ? eachShare : data[o].ownProfit;
+    const finalShare = sh.final[o];
     const el = document.getElementById('accShare_'+o);
     if(el) el.textContent = fmt(finalShare);
   });
@@ -1008,7 +1088,7 @@ function renderColumns(){
 
   const profitFoot = document.getElementById('profitFoot');
   if(profitFoot){
-    profitFoot.innerHTML = pCount >= 2
+    profitFoot.innerHTML = sharing
       ? `سهم هر شریک: <span id="halfProfit">${fmt(eachShare)}</span> تومان (بین ${fmt(pCount)} نفر تیک‌خورده)`
       : `فعلاً هیچ دو نفری با هم شراکتی نیستند — سود مال خود هرکس`;
   }
@@ -1018,19 +1098,19 @@ function renderColumns(){
   const accountTotalProfitEl = document.getElementById('accountTotalProfit');
   if(accountTotalProfitEl) accountTotalProfitEl.textContent = fmt(totalProfit);
   const accountHalfProfitEl = document.getElementById('accountHalfProfit');
-  if(accountHalfProfitEl) accountHalfProfitEl.textContent = pCount >= 2 ? fmt(eachShare) : '—';
+  if(accountHalfProfitEl) accountHalfProfitEl.textContent = sharing ? fmt(eachShare) : '—';
   const lblAccountHalf = document.getElementById('lblAccountHalf');
-  if(lblAccountHalf) lblAccountHalf.textContent = pCount >= 2 ? ("سهم هر شریک (تقسیم بر " + fmt(pCount) + ")") : "سهم شراکتی";
+  if(lblAccountHalf) lblAccountHalf.textContent = sharing ? ("سهم هر شریک (تقسیم بر " + fmt(pCount) + ")") : "سهم شراکتی";
 
   const settleBox = document.getElementById('profitSettlement');
   if(settleBox){
-    if(pCount < 2){
+    if(!sharing){
       settleBox.textContent = 'هیچ دو نفری با هم شراکتی نیستند؛ سود فروش‌های هرکس مال خودش می‌ماند و تسویه‌ای لازم نیست.';
     } else if(pooledProfit === 0 && totalCapital === 0){
       settleBox.textContent = '';
     } else {
-      const lines = partners.map(o=>{
-        const diff = eachShare - data[o].ownProfit;
+      const lines = partners.concat(active.filter(o=>isFixed(o))).map(o=>{
+        const diff = (isFixed(o) ? sh.final[o] : eachShare) - data[o].ownProfit;
         if(Math.abs(diff) < 1) return null;
         return diff > 0
           ? `${ownerName(o)} باید ${fmt(diff)} تومان دریافت کند`
@@ -1209,21 +1289,23 @@ function exportTableImage(ownerFilter){
     ownProfit += q*(sell-buy);
   });
 
-  const profitByOwner = {};
-  active.forEach(o=>{ profitByOwner[o] = 0; });
+  const profitByOwner = {}, fixedByOwner = {};
+  active.forEach(o=>{ profitByOwner[o] = 0; fixedByOwner[o] = 0; });
   items.forEach(item=>{
     const o = active.includes(item.owner) ? item.owner : active[active.length-1];
     const q=Number(item.qty)||0;
     const buy=Number(item.purchasePrice)||0;
     const sell=Number(item.salePrice)||0;
     profitByOwner[o] += q*(sell-buy);
+    fixedByOwner[o] += fixedSplit(o, q, q*(sell-buy)).fixed;
   });
-  const partnersNow = active.filter(o=>isPartner(o));
-  const pooledProfit = partnersNow.reduce((s,o)=>s+profitByOwner[o],0);
-  const pCountNow = partnersNow.length;
+  const shNow = computeShares(active, profitByOwner, fixedByOwner);
+  const partnersNow = shNow.partners;
+  const pooledProfit = shNow.pooled;
+  const pCountNow = shNow.pCount;
 
   // سود نهایی = اگه این نفر تیک «سود شراکتی» رو زده، سود مجموع شرکا تقسیم بر تعدادشون؛ اگه نه، سود خودش
-  const finalShare = isPartner(ownerFilter) && pCountNow ? (pooledProfit / pCountNow) : ownProfit;
+  const finalShare = shNow.final[ownerFilter] !== undefined ? shNow.final[ownerFilter] : ownProfit;
   // مبلغ واریزی نهایی = سرمایه همان نفر + سود نهایی همان نفر
   const finalPayable = capital + finalShare;
 
@@ -1366,28 +1448,32 @@ function exportCombinedImage(){
   const active = activeOwners();
   const faNum = n => fmt(Number(n)||0);
 
-  function calcFor(list){
-    let capital=0, ownProfit=0, totalQty=0;
+  function calcFor(list, ownerKey){
+    let capital=0, ownProfit=0, totalQty=0, fixedPart=0;
     list.forEach(item=>{
       const q=Number(item.qty)||0, buy=Number(item.purchasePrice)||0, sell=Number(item.salePrice)||0;
       capital += q*buy;
       ownProfit += q*(sell-buy);
+      fixedPart += fixedSplit(ownerKey, q, q*(sell-buy)).fixed;
       totalQty += q;
     });
-    return {capital, ownProfit, totalQty};
+    return {capital, ownProfit, totalQty, fixedPart};
   }
 
   const calcByOwner = {};
-  active.forEach(o=>{ calcByOwner[o] = calcFor(items.filter(x=>x.owner===o)); });
-  const partnersNow = active.filter(o=>isPartner(o));
-  const pooledProfit = partnersNow.reduce((s,o)=>s+calcByOwner[o].ownProfit,0);
-  const pCountNow = partnersNow.length;
-  const eachShare = pCountNow ? pooledProfit / pCountNow : 0;
+  active.forEach(o=>{ calcByOwner[o] = calcFor(items.filter(x=>x.owner===o), o); });
+  const _pbA = {}, _fbA = {};
+  active.forEach(o=>{ _pbA[o] = calcByOwner[o].ownProfit; _fbA[o] = calcByOwner[o].fixedPart; });
+  const shAll = computeShares(active, _pbA, _fbA);
+  const partnersNow = shAll.partners;
+  const pooledProfit = shAll.pooled;
+  const pCountNow = shAll.pCount;
+  const eachShare = shAll.each;
 
   const cols = active.map(o=>{
     const list = items.filter(x=>x.owner===o);
     const calc = calcByOwner[o];
-    const finalShare = isPartner(o) && pCountNow ? eachShare : calc.ownProfit;
+    const finalShare = shAll.final[o];
     const finalPayable = calc.capital + finalShare;
     return { owner:o, label: ownerName(o), items:list, calc, finalShare, finalPayable, accent: ownerAccent(o) };
   });
@@ -1479,7 +1565,7 @@ function exportCombinedImage(){
   let y=margin;
   center("دفتر مشترک محصولات غیاث — گزارش سود همه نفرات",W/2,y+28,28,"900");
   const invoiceName=(document.getElementById("invoiceName")?.value||"").trim();
-  const modeTxt = pCountNow >= 2
+  const modeTxt = (pCountNow >= 2 || (pCountNow >= 1 && active.some(o=>isFixed(o))))
     ? ("سود شرکا: "+faNum(pooledProfit)+" تومان   |   سهم هر شریک: "+faNum(eachShare)+" تومان")
     : "فعلاً هیچ دو نفری با هم شراکتی نیستند — سود مال خود هرکس";
   center((invoiceName?("نام فاکتور: "+invoiceName+"   |   "):"")+modeTxt,W/2,y+62,18,"700","#555d66");
@@ -1501,7 +1587,7 @@ function exportCombinedImage(){
 
     rounded(x,cy,contentW,summaryH,15,"#ffffff","#c9c2b7");
     rightFit("سرمایه: "+faNum(calc.capital)+" تومان",x+contentW-20,cy+38,contentW-40,20,"700","#555d66");
-    rightFit((isPartner(owner)?"سود نهایی (سهم شراکتی): ":"سود نهایی (سود خودش): ")+faNum(finalShare)+" تومان",x+contentW-20,cy+82,contentW-40,20,"700","#555d66");
+    rightFit((isFixed(owner)?"سود نهایی (سود ثابت): ":(isPartner(owner)?"سود نهایی (سهم شراکتی): ":"سود نهایی (سود خودش): "))+faNum(finalShare)+" تومان",x+contentW-20,cy+82,contentW-40,20,"700","#555d66");
     right("مبلغ واریزی نهایی",x+contentW-20,cy+124,21,"900","#20262b");
     rightFit(faNum(finalPayable)+" تومان",x+contentW-20,cy+162,contentW-40,32,"900",accent.main);
     cy+=summaryH+gapAfterSummary;
@@ -1589,6 +1675,8 @@ function saveInvoiceToFile(){
     invoiceName: invoiceName,
     ownerCount: state.ownerCount,
     partnerFlags: state.partnerFlags,
+    fixedFlags: state.fixedFlags || {},
+    fixedAmounts: state.fixedAmounts || {},
     ownerNames: state.ownerNames || {},
     salePrices: state.salePrices || {},
     customProducts: state.customProducts || [],
@@ -1668,6 +1756,8 @@ function loadInvoiceFromFile(file){
         ownerNames: (data.ownerNames && typeof data.ownerNames === "object") ? data.ownerNames : (state.ownerNames || {}),
         ownerCount: ownerCount,
         partnerFlags: partnerFlags,
+        fixedFlags: (data.fixedFlags && typeof data.fixedFlags === "object") ? data.fixedFlags : (state.fixedFlags || {}),
+        fixedAmounts: (data.fixedAmounts && typeof data.fixedAmounts === "object") ? data.fixedAmounts : (state.fixedAmounts || {}),
         customProducts: state.customProducts || [],
         version: PRODUCTS_VERSION
       };
@@ -1702,7 +1792,7 @@ document.getElementById("invoiceFile").addEventListener("change", (e)=>{
 
 document.getElementById('resetAll').addEventListener('click', ()=>{
   if(confirm('همه‌ی کالاهای اضافه‌شده و قیمت‌های ویرایش‌شده پاک بشه؟')){
-    state = {salePrices:{}, buyPrices:{}, buyPricesByList:{}, salePricesByList:{}, postage: state.postage || {}, addPostage: state.addPostage, postageOff: state.postageOff || {}, postageUnit: state.postageUnit || {}, priceList: state.priceList, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, customProducts: state.customProducts || [], version: PRODUCTS_VERSION};
+    state = {salePrices:{}, buyPrices:{}, buyPricesByList:{}, salePricesByList:{}, postage: state.postage || {}, addPostage: state.addPostage, postageOff: state.postageOff || {}, postageUnit: state.postageUnit || {}, priceList: state.priceList, items:[], ownerNames: state.ownerNames || {}, ownerCount: state.ownerCount, partnerFlags: state.partnerFlags, fixedFlags: state.fixedFlags || {}, fixedAmounts: state.fixedAmounts || {}, customProducts: state.customProducts || [], version: PRODUCTS_VERSION};
     saveState();
     activeCategory = 'همه';
     renderCategoryTabs();
