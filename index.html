@@ -410,11 +410,25 @@ const DEFAULT_OWNER_NAMES = { ali: "نفر اول", maryam: "نفر دوم", p3:
 const STORE_KEY = "ghiyas_ledger_addflow_v1";
 const PRODUCTS_VERSION = "2026-09-11-4";
 
+// قیمت‌ها و هزینه پست «ثابت» هستند و فقط از خود کد می‌آیند؛ در مرورگر ذخیره نمی‌شوند
+// تا در همه‌ی مرورگرها و پروفایل‌ها همیشه یکسان باشند.
+const PRICE_KEYS = ["salePrices","buyPrices","buyPricesByList","salePricesByList","postage","postageOff","postageUnit"];
 function loadState(){
-  try{ const raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {salePrices:{}, items:[]}; }
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    const st = raw ? JSON.parse(raw) : {items:[]};
+    PRICE_KEYS.forEach(k=>{ st[k] = {}; });
+    return st;
+  }
   catch(e){ return {salePrices:{}, items:[]}; }
 }
-function saveState(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+function saveState(){
+  try{
+    const copy = Object.assign({}, state);
+    PRICE_KEYS.forEach(k=>{ delete copy[k]; });
+    localStorage.setItem(STORE_KEY, JSON.stringify(copy));
+  }catch(e){}
+}
 let state = loadState();
 if(!state.salePrices) state.salePrices = {};
 if(!state.buyPrices) state.buyPrices = {};
@@ -1807,7 +1821,7 @@ document.getElementById('resetAll').addEventListener('click', ()=>{
 const $=id=>document.getElementById(id);
 const enc=new TextEncoder();
 const mehr=()=>state.priceList==="mehr";
-const HINT="اکسل را دانلود کنید، ستون‌های زرد «قیمت خرید» (بدون پست)، «هزینه پست هر عدد» و «قیمت فروش» را عوض کنید، ذخیره کنید و همین‌جا لود کنید. قیمت نهایی خرید = قیمت خرید + هزینه پست (با تیک «محاسبه با هزینه پست»). قیمت‌ها روی همین مرورگر می‌ماند. برای کالای جدید، ته جدول یک ردیف تازه با نام کالا، قیمت خرید و قیمت فروش اضافه کنید.";
+const HINT="اکسل را دانلود کنید، ستون‌های زرد «قیمت خرید» (بدون پست)، «هزینه پست هر عدد» و «قیمت فروش» را عوض کنید، ذخیره کنید و همین‌جا لود کنید. قیمت نهایی خرید = قیمت خرید + هزینه پست (با تیک «محاسبه با هزینه پست»). قیمت‌های ثابت از خود برنامه می‌آیند؛ تغییر قیمت در جدول یا با اکسل فقط تا بستن/رفرش صفحه می‌ماند. برای کالای جدید، ته جدول یک ردیف تازه با نام کالا، قیمت خرید و قیمت فروش اضافه کنید.";
 
 const BASE=PRODUCTS.length;
 function addCustom(name,buy,sale,persist){
