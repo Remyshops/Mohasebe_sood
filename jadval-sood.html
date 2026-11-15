@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>جدول قیمت خرید، سود و قیمت فروش (خرده و عمده)</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6f5;--panel:#fff;--ink:#1d2a2a;--soft:#66746f;--line:#dfe5e2;--head:#0f3d3e;--good:#1f7a4d;--bad:#b3392f;--field:#fffdf4}
+@media (prefers-color-scheme:dark){:root{--bg:#121a19;--panel:#1a2423;--ink:#e8efed;--soft:#93a39e;--line:#2b3836;--head:#2f7f80;--good:#4fc88a;--bad:#ef7a70;--field:#222d2b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Vazirmatn',Tahoma,sans-serif;padding:18px 12px 40px;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-size:1.25rem;margin:0 0 4px;font-weight:800}
+.sub{color:var(--soft);font-size:.82rem;margin:0 0 14px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{font:inherit;font-size:.82rem;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 12px;border-radius:8px;cursor:pointer}
+.seg button.on{background:var(--head);border-color:var(--head);color:#fff}
+.bar label{font-size:.82rem;display:flex;gap:6px;align-items:center;cursor:pointer}
+.bar input[type=search]{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:8px;padding:6px 10px;min-width:180px;flex:1}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:680px}
+th{background:var(--head);color:#fff;font-weight:600;font-size:.78rem;padding:9px 8px;text-align:center;white-space:nowrap;position:sticky;top:0}
+th:first-child,td.n{text-align:right}
+td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.n{white-space:normal;min-width:240px}
+tr:last-child td{border-bottom:none}
+tbody tr:nth-child(even){background:rgba(127,150,145,.06)}
+.profit{font-weight:800;color:var(--good)}
+.profit.neg{color:var(--bad)}
+.pct{color:var(--soft);font-size:.78rem}
+input.sale{font:inherit;font-size:.85rem;width:120px;text-align:center;border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:6px;padding:4px}
+input.sale:focus{outline:2px solid var(--head)}
+.warn{color:var(--bad);font-size:.7rem;display:block}
+.note{color:var(--soft);font-size:.75rem;margin-top:12px}
+.empty{padding:24px;text-align:center;color:var(--soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>جدول قیمت خرید، سود و قیمت فروش (خرده و عمده)</h1>
+  <p class="sub">قیمت‌ها به تومان. قیمت فروش قابل ویرایش است و سود همان لحظه دوباره حساب می‌شود.</p>
+
+  <div class="bar">
+    <div class="seg" id="modeSeg">
+      <button data-k="retail" class="on">خرده (تکی)</button>
+      <button data-k="wholesale">عمده</button>
+    </div>
+    <label><input type="checkbox" id="post" checked> با هزینه پست</label>
+    <div class="seg" id="catSeg">
+      <button data-c="all" class="on">همه</button>
+      <button data-c="home">خانگی</button>
+      <button data-c="auto">خودرویی</button>
+      <button data-c="freshener">خوشبوکننده</button>
+      <button data-c="perfume">عطر</button>
+      <button data-c="cologne">ادکلن</button>
+      <button data-c="leatherwax">نانو چرم</button>
+    </div>
+    <input type="search" id="q" placeholder="جستجوی نام محصول…">
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr id="hr"></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden>موردی پیدا نشد.</div>
+  </div>
+  <p class="note" id="note"></p>
+</div>
+
+<script>
+const ROWS = [{"n":"پاک کننده چند منظوره","cat":"home","cost":131500,"post":30000,"retail":342000,"wholesale":246000,"market":342000,"carton":20,"note":""},{"n":"پاک کننده گاز","cat":"home","cost":125000,"post":30000,"retail":336000,"wholesale":239000,"market":336000,"carton":20,"note":""},{"n":"پاک کننده سینک و شیر آلات","cat":"home","cost":123500,"post":30000,"retail":332000,"wholesale":238000,"market":332000,"carton":20,"note":""},{"n":"پاک کننده مبل، فرش و پارچه","cat":"home","cost":124500,"post":30000,"retail":334000,"wholesale":238000,"market":334000,"carton":20,"note":""},{"n":"پاک کننده ال‌ای‌دی و صفحه نمایش","cat":"home","cost":120000,"post":30000,"retail":324000,"wholesale":232000,"market":324000,"carton":20,"note":""},{"n":"پاک کننده کاغذ دیواری","cat":"home","cost":125000,"post":30000,"retail":324000,"wholesale":232000,"market":324000,"carton":20,"note":""},{"n":"پاک کننده پارکت و سرامیک","cat":"home","cost":123500,"post":30000,"retail":330000,"wholesale":237000,"market":330000,"carton":20,"note":""},{"n":"واکس مات کننده لاستیک","cat":"auto","cost":119500,"post":30000,"retail":419000,"wholesale":228000,"market":419000,"carton":20,"note":""},{"n":"واکس براق کننده لاستیک","cat":"auto","cost":143500,"post":30000,"retail":449000,"wholesale":258000,"market":449000,"carton":20,"note":"در لیست خرده‌فروشی سایت نیست؛ قیمت بازار جدول عمده گذاشته شد"},{"n":"واکس داشبورد سیلیکونی","cat":"auto","cost":158000,"post":30000,"retail":409000,"wholesale":270000,"market":409000,"carton":20,"note":""},{"n":"واکس داشبورد غیر سیلیکونی","cat":"auto","cost":137500,"post":30000,"retail":399000,"wholesale":261000,"market":399000,"carton":20,"note":""},{"n":"واکس سه‌کاره لاستیک داشبورد","cat":"auto","cost":153500,"post":30000,"retail":429000,"wholesale":270000,"market":429000,"carton":20,"note":""},{"n":"صفر شوی","cat":"auto","cost":137500,"post":30000,"retail":409000,"wholesale":246000,"market":409000,"carton":20,"note":""},{"n":"موتور شوی","cat":"auto","cost":128000,"post":30000,"retail":409000,"wholesale":246000,"market":409000,"carton":20,"note":""},{"n":"رینگ شوی","cat":"auto","cost":107000,"post":30000,"retail":359000,"wholesale":246000,"market":359000,"carton":20,"note":""},{"n":"پاک کننده چند منظوره خودرو","cat":"auto","cost":155500,"post":30000,"retail":429000,"wholesale":279000,"market":429000,"carton":20,"note":""},{"n":"شیشه شوی","cat":"auto","cost":101000,"post":30000,"retail":379000,"wholesale":211000,"market":379000,"carton":20,"note":""},{"n":"شامپو بدنه","cat":"auto","cost":168000,"post":30000,"retail":449000,"wholesale":320000,"market":449000,"carton":20,"note":""},{"n":"براق کننده بدنه","cat":"auto","cost":122500,"post":30000,"retail":409000,"wholesale":204000,"market":409000,"carton":20,"note":""},{"n":"براق کننده چراغ","cat":"auto","cost":122500,"post":30000,"retail":409000,"wholesale":204000,"market":409000,"carton":20,"note":""},{"n":"واکس براق کننده لاستیک ( براق شاین)","cat":"auto","cost":192000,"post":30000,"retail":509000,"wholesale":285000,"market":509000,"carton":20,"note":""},{"n":"بلک مجیک","cat":"auto","cost":167000,"post":30000,"retail":450000,"wholesale":270000,"market":450000,"carton":20,"note":""},{"n":"اسپری خوشبوکننده هوا رایحه باس من","cat":"freshener","cost":137000,"post":10000,"retail":369000,"wholesale":252000,"market":369000,"carton":25,"note":""},{"n":"اسپری خوشبوکننده هوا رایحه مادام بیوتی","cat":"freshener","cost":137000,"post":10000,"retail":369000,"wholesale":245000,"market":369000,"carton":25,"note":""},{"n":"اسپری خوشبوکننده هوا رایحه لاوندر","cat":"freshener","cost":137000,"post":10000,"retail":369000,"wholesale":245000,"market":369000,"carton":25,"note":""},{"n":"اسپری خوشبوکننده هوا رایحه کول فرش","cat":"freshener","cost":137000,"post":10000,"retail":369000,"wholesale":245000,"market":369000,"carton":25,"note":""},{"n":"ادکلن زنانه همراز","cat":"cologne","cost":407500,"post":25000,"retail":1219000,"wholesale":586000,"market":1219000,"carton":6,"note":""},{"n":"ادکلن مردانه کایرا","cat":"cologne","cost":407500,"post":25000,"retail":1219000,"wholesale":586000,"market":1219000,"carton":6,"note":""},{"n":"نانو چرم کیف و کفش بدون جعبه","cat":"leatherwax","cost":150000,"post":10000,"retail":359000,"wholesale":260000,"market":359000,"carton":25,"note":""},{"n":"نانو چرم کیف و کفش با جعبه","cat":"leatherwax","cost":176500,"post":20833,"retail":389000,"wholesale":287000,"market":389000,"carton":12,"note":""},{"n":"عطر با رایحه دانهیل","cat":"perfume","cost":187500,"post":10417,"retail":397000,"wholesale":281000,"market":397000,"carton":24,"note":""},{"n":"عطر با رایحه ایفوریا","cat":"perfume","cost":187500,"post":10417,"retail":397000,"wholesale":281000,"market":397000,"carton":24,"note":""},{"n":"عطر با رایحه باس من","cat":"perfume","cost":187500,"post":10417,"retail":397000,"wholesale":281000,"market":397000,"carton":24,"note":""},{"n":"عطر با رایحه مادام بیوتی","cat":"perfume","cost":187500,"post":10417,"retail":397000,"wholesale":281000,"market":397000,"carton":24,"note":""},{"n":"عطر با رایحه لاوندر","cat":"perfume","cost":187500,"post":10417,"retail":397000,"wholesale":281000,"market":397000,"carton":24,"note":""},{"n":"عطر با رایحه کول فرش","cat":"perfume","cost":187500,"post":10417,"retail":397000,"wholesale":281000,"market":397000,"carton":24,"note":""}];
+const st = {mode:'retail', post:true, cat:'all', q:'', edits:{}};
+const fa = n => Math.round(n).toLocaleString('fa-IR');
+const toEn = s => s.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[,٬،\s]/g,'');
+
+const buy = r => r.cost + (st.post ? r.post : 0);
+const sale = (r,i) => {
+  const k = st.mode + i;
+  if(st.edits[k] !== undefined) return st.edits[k];
+  return st.mode==='retail' ? r.retail : r.wholesale;
+};
+
+function head(){
+  const w = st.mode==='wholesale';
+  document.getElementById('hr').innerHTML =
+    '<th>نام محصول</th><th>قیمت خرید</th><th>سود هر عدد</th><th>درصد سود</th><th>' + (w?'قیمت عمده':'قیمت فروش') + '</th>' +
+    (w?'<th>تعداد در کارتن</th><th>سود هر کارتن</th>':'');
+}
+
+function render(){
+  head();
+  const w = st.mode==='wholesale';
+  const tb = document.getElementById('tb');
+  tb.innerHTML = '';
+  let shown = 0;
+  ROWS.forEach((r,i)=>{
+    if(st.cat!=='all' && r.cat!==st.cat) return;
+    if(st.q && !r.n.toLowerCase().includes(st.q)) return;
+    shown++;
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td class="n"></td><td class="b"></td><td class="p"></td><td class="c pct"></td><td><input class="sale" inputmode="numeric"></td>' + (w?'<td class="q"></td><td class="cp profit"></td>':'');
+    const nameCell = tr.children[0];
+    nameCell.textContent = r.n;
+    if(r.note && !w){ const x=document.createElement('span'); x.className='warn'; x.textContent=r.note; nameCell.appendChild(x); }
+    const inp = tr.querySelector('input');
+    inp.value = sale(r,i).toLocaleString('fa-IR');
+    const upd = ()=>{
+      const b = buy(r), s = Number(toEn(inp.value)) || 0, p = s - b;
+      tr.querySelector('.b').textContent = fa(b);
+      const pc = tr.querySelector('.p');
+      pc.textContent = (p<0?'−':'') + fa(Math.abs(p));
+      pc.className = 'p profit' + (p<0?' neg':'');
+      tr.querySelector('.c').textContent = b>0 ? '٪' + (p/b*100).toLocaleString('fa-IR',{maximumFractionDigits:0}) : '—';
+      if(w){
+        tr.querySelector('.q').textContent = fa(r.carton);
+        const cp = tr.querySelector('.cp'), v = p*r.carton;
+        cp.textContent = (v<0?'−':'') + fa(Math.abs(v));
+        cp.className = 'cp profit' + (v<0?' neg':'');
+      }
+    };
+    upd();
+    inp.addEventListener('input', ()=>{ st.edits[st.mode+i] = Number(toEn(inp.value)) || 0; upd(); });
+    inp.addEventListener('blur', ()=>{ inp.value = sale(r,i).toLocaleString('fa-IR'); });
+    tb.appendChild(tr);
+  });
+  document.getElementById('empty').hidden = shown>0;
+  document.getElementById('note').textContent = w
+    ? 'قیمت عمده = قیمتی که فروشگاه از شما می‌خرد (از جدول عمده سایت). سود کارتن = سود هر عدد × تعداد در کارتن. قیمت خرید شما = قیمت لیست مهر ۱۴۰۵ + سهم پست هر عدد.'
+    : 'قیمت فروش خرده از سایت کاتالوگ است. قیمت خرید شما = قیمت لیست مهر ۱۴۰۵ + سهم پست هر عدد (هزینه پست کارتن ÷ تعداد در کارتن).';
+}
+
+document.getElementById('modeSeg').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  st.mode = b.dataset.k;
+  document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on', x===b));
+  render();
+});
+document.getElementById('catSeg').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  st.cat = b.dataset.c;
+  document.querySelectorAll('#catSeg button').forEach(x=>x.classList.toggle('on', x===b));
+  render();
+});
+document.getElementById('post').addEventListener('change', e=>{ st.post = e.target.checked; render(); });
+document.getElementById('q').addEventListener('input', e=>{ st.q = e.target.value.trim().toLowerCase(); render(); });
+render();
+</script>
+</body>
+</html>
