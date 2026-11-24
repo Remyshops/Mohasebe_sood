@@ -38,6 +38,20 @@ input.sale:focus{outline:2px solid var(--head)}
 .ed{display:block;margin:2px auto 0;font:inherit;font-size:.68rem;color:#a86a00;background:none;border:none;cursor:pointer;padding:0}
 .ed:hover{text-decoration:underline}
 .ed[hidden]{display:none}
+
+.tabs{display:flex;gap:8px;margin:0 0 14px;border-bottom:2px solid var(--line)}
+.tabs button{font:inherit;font-size:.9rem;font-weight:600;border:none;background:none;color:var(--soft);padding:9px 18px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs button.on{color:var(--head);border-bottom-color:var(--head)}
+@media (prefers-color-scheme:dark){.tabs button.on{color:var(--ink)}}
+.pane[hidden]{display:none}
+.cbtn{font:inherit;font-size:.85rem;border:1px solid var(--head);background:var(--head);color:#fff;padding:7px 16px;border-radius:8px;cursor:pointer}
+.cbtn.alt{background:var(--panel);color:var(--head)}
+@media (prefers-color-scheme:dark){.cbtn.alt{color:var(--ink);border-color:var(--line)}}
+.bar input.ttl{min-width:220px}
+input.nm{font:inherit;font-size:.88rem;width:100%;min-width:220px;text-align:right;border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:6px;padding:5px 8px}
+input.nm:focus{outline:2px solid var(--head)}
+.del{font:inherit;font-size:.9rem;border:none;background:none;color:var(--bad);cursor:pointer;padding:2px 8px}
+td.idx{color:var(--soft);font-size:.78rem;width:34px}
 </style>
 </head>
 <body>
@@ -45,6 +59,11 @@ input.sale:focus{outline:2px solid var(--head)}
   <h1>جدول قیمت خرید، سود و قیمت فروش (خرده و عمده)</h1>
   <p class="sub">قیمت‌ها به تومان. قیمت فروش قابل ویرایش است و سود همان لحظه دوباره حساب می‌شود.</p>
 
+  <div class="tabs" id="tabs">
+    <button data-t="main" class="on">جدول اصلی</button>
+    <button data-t="custom">جدول دلخواه (کالای نامحدود + عکس)</button>
+  </div>
+  <div class="pane" id="paneMain">
   <div class="bar">
     <div class="seg" id="modeSeg">
       <button data-k="retail" class="on">خرده (تکی)</button>
@@ -71,6 +90,22 @@ input.sale:focus{outline:2px solid var(--head)}
     <div class="empty" id="empty" hidden>موردی پیدا نشد.</div>
   </div>
   <p class="note" id="note"></p>
+  </div>
+  <div class="pane" id="paneCustom" hidden>
+    <div class="bar">
+      <input type="search" class="ttl" id="cTitle" placeholder="عنوان جدول (برای عکس)" value="جدول قیمت خرید، فروش و سود">
+      <button class="cbtn" id="cAdd" type="button">+ افزودن کالا</button>
+      <button class="cbtn alt" id="cPng" type="button">⬇ دریافت عکس با کیفیت بالا</button>
+      <button class="cbtn alt" id="cClear" type="button">پاک کردن همه</button>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>#</th><th>نام کالا</th><th>قیمت خرید</th><th>سود هر عدد</th><th>درصد سود</th><th>قیمت فروش</th><th></th></tr></thead>
+        <tbody id="ctb"></tbody>
+      </table>
+    </div>
+    <p class="note">اسم کالا، قیمت خرید و قیمت فروش را بنویسید؛ سود و درصد سود همان لحظه حساب می‌شود. هر تعداد کالا می‌توانید اضافه کنید. ردیف‌های کاملاً خالی در عکس نمی‌آیند. اطلاعات این تب در مرورگر ذخیره می‌ماند.</p>
+  </div>
 </div>
 
 <script>
@@ -159,6 +194,131 @@ document.getElementById('catSeg').addEventListener('click', e=>{
 document.getElementById('post').addEventListener('change', e=>{ st.post = e.target.checked; render(); });
 document.getElementById('q').addEventListener('input', e=>{ st.q = e.target.value.trim().toLowerCase(); render(); });
 render();
+
+/* ===== تب جدول دلخواه ===== */
+(function(){
+  const KEY='jadval_custom_v1';
+  let data=[];
+  try{ data=JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){}
+  if(!Array.isArray(data)||!data.length) data=[{n:'',b:0,s:0},{n:'',b:0,s:0},{n:'',b:0,s:0}];
+  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(data)); }catch(e){} };
+  const ctb=document.getElementById('ctb');
+  const fmt=v=>Number(v)?Number(v).toLocaleString('fa-IR'):'';
+  const calc=r=>{const p=r.s-r.b;return {p, pc: r.b>0 ? p/r.b*100 : null};};
+  const pctTxt=pc=>pc===null?'—':'٪'+pc.toLocaleString('fa-IR',{maximumFractionDigits:0});
+  const profTxt=p=>(p<0?'−':'')+Math.round(Math.abs(p)).toLocaleString('fa-IR');
+
+  function build(){
+    ctb.innerHTML='';
+    data.forEach((r,i)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td class="idx"></td><td class="n"><input class="nm" placeholder="نام کالا"></td><td><input class="sale b" inputmode="numeric"></td><td class="p profit"></td><td class="c pct"></td><td><input class="sale s" inputmode="numeric"></td><td><button type="button" class="del" title="حذف ردیف">✕</button></td>';
+      tr.querySelector('.idx').textContent=(i+1).toLocaleString('fa-IR');
+      const nm=tr.querySelector('.nm'),bi=tr.querySelector('.b'),si=tr.querySelector('.s');
+      nm.value=r.n; bi.value=fmt(r.b); si.value=fmt(r.s);
+      const upd=()=>{
+        const {p,pc}=calc(r);
+        const pe=tr.querySelector('.p');
+        const empty=!r.b&&!r.s;
+        pe.textContent=empty?'':profTxt(p);
+        pe.className='p profit'+(p<0?' neg':'');
+        tr.querySelector('.c').textContent=empty?'':pctTxt(pc);
+      };
+      upd();
+      nm.addEventListener('input',()=>{r.n=nm.value;save();});
+      bi.addEventListener('input',()=>{r.b=Number(toEn(bi.value))||0;upd();save();});
+      si.addEventListener('input',()=>{r.s=Number(toEn(si.value))||0;upd();save();});
+      bi.addEventListener('blur',()=>{bi.value=fmt(r.b);});
+      si.addEventListener('blur',()=>{si.value=fmt(r.s);});
+      si.addEventListener('keydown',e=>{ if(e.key==='Enter' && i===data.length-1){ e.preventDefault(); add(); }});
+      tr.querySelector('.del').addEventListener('click',()=>{ data.splice(i,1); if(!data.length) data.push({n:'',b:0,s:0}); save(); build(); });
+      ctb.appendChild(tr);
+    });
+  }
+  function add(){
+    data.push({n:'',b:0,s:0}); save(); build();
+    const last=ctb.lastElementChild; if(last) last.querySelector('.nm').focus();
+  }
+  document.getElementById('cAdd').addEventListener('click',add);
+  document.getElementById('cClear').addEventListener('click',()=>{
+    if(!confirm('همه ردیف‌ها پاک شود؟')) return;
+    data=[{n:'',b:0,s:0},{n:'',b:0,s:0},{n:'',b:0,s:0}]; save(); build();
+  });
+
+  /* ---- خروجی عکس ---- */
+  async function png(){
+    const rows=data.filter(r=>r.n.trim()||r.b||r.s);
+    if(!rows.length){ alert('هنوز کالایی وارد نشده است.'); return; }
+    try{ await document.fonts.ready; }catch(e){}
+    const FONT="'Vazirmatn',Tahoma,'Segoe UI',sans-serif";
+    const SC=3, W=1500, PAD=40, RH=62, HH=64;
+    const title=document.getElementById('cTitle').value.trim();
+    const TH=title?96:30;
+    const H=TH+HH+RH*rows.length+PAD+30;
+    const cv=document.createElement('canvas'); cv.width=W*SC; cv.height=H*SC;
+    const c=cv.getContext('2d'); c.scale(SC,SC); c.direction='rtl'; c.textBaseline='middle';
+    c.fillStyle='#f4f6f5'; c.fillRect(0,0,W,H);
+    const tw=W-PAD*2, x0=PAD, y0=TH;
+    // ستون‌ها از راست به چپ: نام، خرید، سود، درصد، فروش
+    const wp=[0.34,0.17,0.17,0.12,0.20];
+    const edges=[]; let xr=x0+tw; wp.forEach(f=>{const w=tw*f; edges.push([xr,xr-w]); xr-=w;});
+    if(title){
+      c.fillStyle='#1d2a2a'; c.font='800 38px '+FONT; c.textAlign='center';
+      c.fillText(title,W/2,48);
+    }
+    // کادر جدول
+    const rr=(x,y,w,h,r)=>{c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();};
+    const th=HH+RH*rows.length;
+    c.save(); rr(x0,y0,tw,th,16); c.fillStyle='#fff'; c.fill(); c.clip();
+    c.fillStyle='#0f3d3e'; c.fillRect(x0,y0,tw,HH);
+    const heads=['نام کالا','قیمت خرید','سود هر عدد','درصد سود','قیمت فروش'];
+    c.fillStyle='#fff'; c.font='700 25px '+FONT;
+    heads.forEach((h,k)=>{
+      const [r_,l_]=edges[k];
+      if(k===0){c.textAlign='right';c.fillText(h,r_-24,y0+HH/2);}
+      else{c.textAlign='center';c.fillText(h,(r_+l_)/2,y0+HH/2);}
+    });
+    rows.forEach((r,i)=>{
+      const y=y0+HH+i*RH, {p,pc}=calc(r), empty=!r.b&&!r.s;
+      if(i%2){c.fillStyle='#f3f7f6';c.fillRect(x0,y,tw,RH);}
+      c.fillStyle='#dfe5e2'; c.fillRect(x0,y+RH-1,tw,1);
+      // نام (کوچک‌شدن فونت در صورت طولانی بودن)
+      const nw=edges[0][0]-edges[0][1]-48; let fs=26;
+      c.textAlign='right'; c.fillStyle='#1d2a2a';
+      do{ c.font='600 '+fs+'px '+FONT; fs--; }while(c.measureText(r.n).width>nw && fs>14);
+      c.fillText(r.n,edges[0][0]-24,y+RH/2);
+      c.textAlign='center'; c.font='600 26px '+FONT;
+      const mid=k=>(edges[k][0]+edges[k][1])/2;
+      c.fillStyle='#1d2a2a';
+      c.fillText(r.b?fmt(r.b):'—',mid(1),y+RH/2);
+      c.fillStyle=empty?'#66746f':(p<0?'#b3392f':'#1f7a4d'); c.font='800 28px '+FONT;
+      c.fillText(empty?'—':profTxt(p),mid(2),y+RH/2);
+      c.fillStyle='#66746f'; c.font='600 24px '+FONT;
+      c.fillText(empty?'—':pctTxt(pc),mid(3),y+RH/2);
+      c.fillStyle='#1d2a2a'; c.font='600 26px '+FONT;
+      c.fillText(r.s?fmt(r.s):'—',mid(4),y+RH/2);
+    });
+    c.restore();
+    c.strokeStyle='#dfe5e2'; c.lineWidth=2; rr(x0,y0,tw,th,16); c.stroke();
+    c.fillStyle='#66746f'; c.font='500 20px '+FONT; c.textAlign='center';
+    c.fillText('قیمت‌ها به تومان',W/2,y0+th+30);
+    cv.toBlob(b=>{
+      const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+      a.download='jadval-sood.png'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+    },'image/png');
+  }
+  document.getElementById('cPng').addEventListener('click',png);
+
+  /* ---- تعویض تب ---- */
+  document.getElementById('tabs').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+    document.getElementById('paneMain').hidden = b.dataset.t!=='main';
+    document.getElementById('paneCustom').hidden = b.dataset.t!=='custom';
+  });
+  build();
+})();
 </script>
 </body>
 </html>
